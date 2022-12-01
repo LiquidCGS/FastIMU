@@ -1,0 +1,27 @@
+{
+    "name": "FastIMU",
+    "keywords": "IMU, mpu9250, i2c",
+    "description": "IMU library with support for a few different IMU's",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HadesVR/FastIMU.git"
+    },
+    "version": "0.9",
+    "export": {
+        "exclude": [
+            "datasheets",
+            ".github/*",
+            "keywords.txt",
+        ]
+    },
+    "frameworks": "arduino",
+    "platforms": [
+        "atmelavr",
+        "teensy",
+        "atmelmegaavr",
+        "espressif32",
+        "espressif8266",
+        "ststm32"
+    ]
+}
