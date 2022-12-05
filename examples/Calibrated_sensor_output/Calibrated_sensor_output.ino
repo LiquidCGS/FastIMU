@@ -1,6 +1,6 @@
 #include "FastIMU.h"
 
-MPU9250 IMU;    //Change "MPU9250" to the name of any supported IMU!
+MPU9255 IMU;    //Change "MPU9255" to the name of any supported IMU!
 
 calData calib = { 0 };  //Calibration data
 AccelData accelData;    //Sensor data
@@ -12,14 +12,22 @@ void setup() {
   float gyroBias[3] = { 0 };
   float magScale[3] = { 0 };
   float magBias[3] = { 0 };
-  IMU.init(calib, 0x68);
 
   Serial.begin(115200);
   while (!Serial) {
     ;
   }
+  
+  int err = IMU.init(calib, 0x68);
+  if (err != 0) {
+    Serial.print("Error initializing IMU: ");
+    Serial.println(err);
+    while (true) {
+      ;
+    }
+  }
+  
   Serial.println("FastIMU calibration & data example");
-
   if (IMU.hasMagnetometer()) {
     delay(1000);
     Serial.println("Move IMU in figure 8 pattern until done.");
