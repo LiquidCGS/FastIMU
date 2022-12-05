@@ -6,5 +6,6 @@
 #include "F_MPU9250.hpp"
 #include "F_MPU9255.hpp"
 #include "F_MPU6500.hpp"
+#include "F_ICM20689.hpp"
 
 #endif /* _FastIMU_H_ */

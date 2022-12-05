@@ -1,6 +1,8 @@
 #include "FastIMU.h"
 
-MPU6500 IMU;    //Change "MPU6500" to the name of any supported IMU!
+ICM20689 IMU;    //Change "ICM20689" to the name of any supported IMU!
+
+// Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689
 
 calData calib = { 0 };  //Calibration data
 AccelData accelData;    //Sensor data
