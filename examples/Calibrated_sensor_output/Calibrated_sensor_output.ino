@@ -1,8 +1,9 @@
 #include "FastIMU.h"
 
-ICM20689 IMU;    //Change "ICM20689" to the name of any supported IMU!
+#define IMU_ADDRESS 0x69 //Change to the address of the IMU
+BMI055 IMU;              //Change "BMI055" to the name of any supported IMU!
 
-// Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689
+// Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689 BMI055 BMX055
 
 calData calib = { 0 };  //Calibration data
 AccelData accelData;    //Sensor data
@@ -20,7 +21,7 @@ void setup() {
     ;
   }
   
-  int err = IMU.init(calib, 0x68);
+  int err = IMU.init(calib, IMU_ADDRESS);
   if (err != 0) {
     Serial.print("Error initializing IMU: ");
     Serial.println(err);
@@ -28,7 +29,7 @@ void setup() {
       ;
     }
   }
-  
+
   Serial.println("FastIMU calibration & data example");
   if (IMU.hasMagnetometer()) {
     delay(1000);
@@ -88,7 +89,7 @@ void setup() {
   calib.magScale[1] = magScale[1];
   calib.magScale[2] = magScale[2];
 
-  IMU.init(calib, 0x68);
+  IMU.init(calib, IMU_ADDRESS);
 }
 
 void loop() {
