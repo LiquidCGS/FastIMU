@@ -26,10 +26,10 @@ int BMI055::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (!(readByte(AccelAddress, BMI055_ACCD_CHIPID) == BMX055_ACCEL_ID)) {
+	if (!(readByte(AccelAddress, BMI055_ACCD_CHIPID) == BMI055_ACCEL_ID)) {
 		return -2;
 	}
-	if (!(readByte(GyroAddress, BMI055_GYR_CHIP_ID) == BMX055_GYRO_ID)) {
+	if (!(readByte(GyroAddress, BMI055_GYR_CHIP_ID) == BMI055_GYRO_ID)) {
 		return -3;
 	}
 

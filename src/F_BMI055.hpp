@@ -10,8 +10,8 @@
 
 */
 
-#define BMX055_ACCEL_ID       0xFA
-#define BMX055_GYRO_ID        0x0F
+#define BMI055_ACCEL_ID       0xFA
+#define BMI055_GYRO_ID        0x0F
 
 #define BMI055_ACCD_CHIPID    0x00
 #define BMI055_ACCD_X_LSB    0x02
