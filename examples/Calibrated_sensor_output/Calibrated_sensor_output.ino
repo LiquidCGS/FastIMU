@@ -1,7 +1,8 @@
 #include "FastIMU.h"
 
-#define IMU_ADDRESS 0x69 //Change to the address of the IMU
-BMI055 IMU;              //Change "BMI055" to the name of any supported IMU!
+#define IMU_ADDRESS 0x69    //Change to the address of the IMU
+#define PERFORM_CALIBRATION //Comment to disable startup calibration
+BMI055 IMU;                 //Change "BMI055" to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689 BMI055 BMX055
 
@@ -29,7 +30,7 @@ void setup() {
       ;
     }
   }
-
+#ifdef PERFORM_CALIBRATION
   Serial.println("FastIMU calibration & data example");
   if (IMU.hasMagnetometer()) {
     delay(1000);
@@ -90,6 +91,7 @@ void setup() {
   calib.magScale[2] = magScale[2];
 
   IMU.init(calib, IMU_ADDRESS);
+#endif
 }
 
 void loop() {
@@ -116,7 +118,7 @@ void loop() {
     Serial.print("\t");
     Serial.print(magData.magZ);
   }
-  Serial.print("\t");
-  Serial.println(IMU.getTemp());
+  Serial.println("\t");
+  //Serial.println(IMU.getTemp());
   delay(50);
 }

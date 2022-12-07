@@ -72,9 +72,9 @@ void BMI055::update()
 	readBytes(GyroAddress, BMI055_GYR_RATE_X_LSB , 6, &rawDataGyro[0]);   // Read the 6 raw gyroscope data registers into data array
 
 	//accel registers
-	AccelCount[0] = (rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0);		  // Turn the MSB and LSB into a signed 16-bit value
-	AccelCount[1] = (rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0);
-	AccelCount[2] = (rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0);
+	AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;		  // Turn the MSB and LSB into a signed 12-bit value
+	AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;
+	AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
 
 	//gyro registers
 	GyroCount[0] = (rawDataGyro[1] << 8) | (rawDataGyro[0]);
@@ -110,8 +110,8 @@ void BMI055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	uint16_t packet_count = 64; // How many sets of full gyro and accelerometer data for averaging;
 	float gyro_bias[3] = { 0, 0, 0 }, accel_bias[3] = { 0, 0, 0 };
 
-	float  gyrosensitivity = 125.f / 32768.f;			//gres value for full range (2000dps) readings
-	float  accelsensitivity = 2.f / 32768.f;			//ares value for full range (16g) readings
+	float  gyrosensitivity = 125.f / 32768.f;			//gres value for full range (2000dps) readings (16 bit)
+	float  accelsensitivity = 2.f / 2048.f;				//ares value for full range (16g) readings (12 bit)
 
 	// Reset sensor.
 	writeByte(AccelAddress, BMI055_BGW_SOFTRESET, 0xB6);
@@ -139,16 +139,16 @@ void BMI055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 		readBytes(AccelAddress, BMI055_ACCD_X_LSB, 6, &data[0]);       // Read the 7 raw accelerometer data registers into data array
 		readBytes(GyroAddress, BMI055_GYR_RATE_X_LSB, 6, &data[6]);   // Read the 6 raw gyroscope data registers into data array
 		
-		accel_temp[0] = (data[1] << 8) | (data[0] & 0xF0);  // Form signed 16-bit integer for each sample in FIFO
-		accel_temp[1] = (data[3] << 8) | (data[2] & 0xF0);
-		accel_temp[2] = (data[5] << 8) | (data[4] & 0xF0);
+		accel_temp[0] = ((data[1] << 8) | (data[0] & 0xF0)) >> 4;  // Form signed 16-bit integer for each sample
+		accel_temp[1] = ((data[3] << 8) | (data[2] & 0xF0)) >> 4;
+		accel_temp[2] = ((data[5] << 8) | (data[4] & 0xF0)) >> 4;
 
 		gyro_temp[0] = (data[7] << 8) | (data[6]);
 		gyro_temp[1] = (data[9] << 8) | (data[8]);
 		gyro_temp[2] = (data[11] << 8) | (data[10]);
 
 
-		accel_bias[0] += accel_temp[0] * accelsensitivity; // Sum individual signed 16-bit biases to get accumulated signed 32-bit biases
+		accel_bias[0] += accel_temp[0] * accelsensitivity; // Sum individual signed 16-bit biases to get accumulated biases
 		accel_bias[1] += accel_temp[1] * accelsensitivity;
 		accel_bias[2] += accel_temp[2] * accelsensitivity;
 
@@ -167,7 +167,7 @@ void BMI055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	gyro_bias[1] /= packet_count;
 	gyro_bias[2] /= packet_count;
 
-	if (accel_bias[2] > 0L) {
+	if (accel_bias[2] > 0.f) {
 		accel_bias[2] -= 1.f; // Remove gravity from the z-axis accelerometer bias calculation
 	}
 	else {

@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	float aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
+	float aRes = 16.f / 2048.f;				//ares value for full range (16g) readings (12 bit)
 	float gRes = 2000.f / 32768.f;			//gres value for full range (2000dps) readings
 
 	float temperature = 0.f;
