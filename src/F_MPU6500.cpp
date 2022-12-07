@@ -1,5 +1,7 @@
 #include "F_MPU6500.hpp"
 
+//Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
+
 int MPU6500::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
@@ -34,7 +36,7 @@ int MPU6500::init(calData cal, uint8_t address)
 	// Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively;
 	// minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
 	// be higher than 1 / 0.0059 = 170 Hz
-	// DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
+	// DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both 
 	// With the MPU6500, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
 	writeByte(IMUAddress, MPU6500_MPU_CONFIG, 0x03);
 

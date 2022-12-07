@@ -1,5 +1,7 @@
 #include "F_ICM20689.hpp"
 
+//Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
+
 int ICM20689::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
@@ -31,12 +33,12 @@ int ICM20689::init(calData cal, uint8_t address)
 	delay(200);
 
 	// Configure Gyro and Thermometer
-	// Disable FSYNC and set thermometer and gyro bandwidth to 184 and 188 Hz, respectively;
-	// minimum delay time for this setting is 2.9 ms, which means sensor fusion update rates cannot
-	// be higher than 1 / 0.0029 = 344 Hz
-	// DLPF_CFG = bits 2:0 = 001; this limits the sample rate to 1000 Hz for both
+	// Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively;
+	// minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
+	// be higher than 1 / 0.0059 = 170 Hz
+	// DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both 
 	// With the ICM20689, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
-	writeByte(IMUAddress, ICM20689_MPU_CONFIG, 0x01);
+	writeByte(IMUAddress, ICM20689_MPU_CONFIG, 0x03);
 
 	// Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
 	writeByte(IMUAddress, ICM20689_SMPLRT_DIV, 0x00);  // Use a 1000 Hz rate; a rate consistent with the filter update rate
@@ -64,7 +66,7 @@ int ICM20689::init(calData cal, uint8_t address)
 	// accel_fchoice_b bit [3]; in this case the bandwidth is 1.13 kHz
 	c = readByte(IMUAddress, ICM20689_ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
 	c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
-	c = c | 0x01;  // Set accelerometer rate to 1 kHz and bandwidth to 184 Hz
+	c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
 	writeByte(IMUAddress, ICM20689_ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
 
 	// The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,

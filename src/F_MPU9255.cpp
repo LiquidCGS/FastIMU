@@ -1,5 +1,7 @@
 #include "F_MPU9255.hpp"
 
+//Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
+
 int MPU9255::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
@@ -67,7 +69,7 @@ int MPU9255::init(calData cal, uint8_t address)
 	// accel_fchoice_b bit [3]; in this case the bandwidth is 1.13 kHz
 	c = readByte(IMUAddress, MPU9255_ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
 	c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
-	c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
+	c = c | 0x03; // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
 	writeByte(IMUAddress, MPU9255_ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
 
 	// The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,
