@@ -2,7 +2,7 @@
 
 #define IMU_ADDRESS 0x69    //Change to the address of the IMU
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
-BMI055 IMU;                 //Change "BMI055" to the name of any supported IMU!
+BMX055 IMU;                 //Change "BMX055" to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689 BMI055 BMX055
 
@@ -118,7 +118,7 @@ void loop() {
     Serial.print("\t");
     Serial.print(magData.magZ);
   }
-  Serial.println("\t");
-  //Serial.println(IMU.getTemp());
+  Serial.print("\t");
+  Serial.println(IMU.getTemp());
   delay(50);
 }

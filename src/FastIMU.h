@@ -8,5 +8,6 @@
 #include "F_MPU6500.hpp"
 #include "F_ICM20689.hpp"
 #include "F_BMI055.hpp"
+#include "F_BMX055.hpp"
 
 #endif /* _FastIMU_H_ */
