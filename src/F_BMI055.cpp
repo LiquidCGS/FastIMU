@@ -73,7 +73,7 @@ void BMI055::update()
 
 	//accel registers
 	AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;		  // Turn the MSB and LSB into a signed 12-bit value
-	AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;
+	AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;	      // praise sign extension, making this code clean and simple.
 	AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
 
 	//gyro registers
