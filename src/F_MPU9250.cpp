@@ -6,6 +6,7 @@ int MPU9250::init(calData cal, uint8_t address)
 {
 	//initialize address variable and calibration data.
 	Wire.begin();
+	Wire.setClock(400000); //400khz clock
 	IMUAddress = address;
 
 	if (cal.valid == false) 
