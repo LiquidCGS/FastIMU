@@ -227,7 +227,7 @@ int MPU9255::setGyroRange(int range) {
 	return 0;
 }
 
-void MPU9255::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
+void MPU9255::calibrateAccelGyro(calData* cal) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
 	uint16_t ii, packet_count, fifo_count;
@@ -305,17 +305,18 @@ void MPU9255::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	}
 
 	// Output scaled accelerometer biases for display in the main program
-	out_accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
-	out_accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
-	out_accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
+	cal->accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
+	cal->accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
+	cal->accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
 
 	// Output scaled gyro biases for display in the main program
-	out_gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
-	out_gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;
-	out_gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
+	cal->gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
+	cal->gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;
+	cal->gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
+	cal->valid = true;
 }
 
-void MPU9255::calibrateMag(float* out_magBias, float* out_magScale) 
+void MPU9255::calibrateMag(calData* cal) 
 {
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
@@ -349,9 +350,9 @@ void MPU9255::calibrateMag(float* out_magBias, float* out_magScale)
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2; // get average y mag bias in counts
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2; // get average z mag bias in counts
 
-	out_magBias[0] = (float)mag_bias[0] * mRes * factoryMagCal[0]; // save mag biases in G for main program
-	out_magBias[1] = (float)mag_bias[1] * mRes * factoryMagCal[1];
-	out_magBias[2] = (float)mag_bias[2] * mRes * factoryMagCal[2];
+	cal->magBias[0] = (float)mag_bias[0] * mRes * factoryMagCal[0]; // save mag biases in G for main program
+	cal->magBias[1] = (float)mag_bias[1] * mRes * factoryMagCal[1];
+	cal->magBias[2] = (float)mag_bias[2] * mRes * factoryMagCal[2];
 
 	// Get soft iron correction estimate
 	mag_scale[0] = (mag_max[0] - mag_min[0]) / 2; // get average x axis max chord length in counts
@@ -361,7 +362,7 @@ void MPU9255::calibrateMag(float* out_magBias, float* out_magScale)
 	float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
 	avg_rad /= 3.0;
 
-	out_magScale[0] = avg_rad / ((float)mag_scale[0]);
-	out_magScale[1] = avg_rad / ((float)mag_scale[1]);
-	out_magScale[2] = avg_rad / ((float)mag_scale[2]);
+	cal->magScale[0] = avg_rad / ((float)mag_scale[0]);
+	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
+	cal->magScale[2] = avg_rad / ((float)mag_scale[2]);
 }

@@ -197,7 +197,7 @@ int BMX055::setGyroRange(int range) {
 	return 0;
 }
 
-void BMX055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
+void BMX055::calibrateAccelGyro(calData* cal) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
 	uint16_t packet_count = 64; // How many sets of full gyro and accelerometer data for averaging;
@@ -268,17 +268,18 @@ void BMX055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	}
 
 	// Output scaled accelerometer biases for display in the main program
-	out_accelBias[0] = (float)accel_bias[0];
-	out_accelBias[1] = (float)accel_bias[1];
-	out_accelBias[2] = (float)accel_bias[2];
+	cal->accelBias[0] = (float)accel_bias[0];
+	cal->accelBias[1] = (float)accel_bias[1];
+	cal->accelBias[2] = (float)accel_bias[2];
 
 	// Output scaled gyro biases for display in the main program
-	out_gyroBias[0] = (float)gyro_bias[0];
-	out_gyroBias[1] = (float)gyro_bias[1];
-	out_gyroBias[2] = (float)gyro_bias[2];
+	cal->gyroBias[0] = (float)gyro_bias[0];
+	cal->gyroBias[1] = (float)gyro_bias[1];
+	cal->gyroBias[2] = (float)gyro_bias[2];
+	cal->valid = true;
 }
 
-void BMX055::calibrateMag(float* out_magBias, float* out_magScale)
+void BMX055::calibrateMag(calData* cal)
 {
 	uint16_t ii = 0, sample_count = 0;
 	float mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
@@ -316,9 +317,9 @@ void BMX055::calibrateMag(float* out_magBias, float* out_magScale)
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2; // get average y mag bias
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2; // get average z mag bias
 
-	out_magBias[0] = mag_bias[0];
-	out_magBias[1] = mag_bias[1];
-	out_magBias[2] = mag_bias[2];
+	cal->magBias[0] = mag_bias[0];
+	cal->magBias[1] = mag_bias[1];
+	cal->magBias[2] = mag_bias[2];
 
 	// Get soft iron correction estimate
 	mag_scale[0] = (mag_max[0] - mag_min[0]) / 2; // get average x axis max chord length in counts
@@ -328,7 +329,7 @@ void BMX055::calibrateMag(float* out_magBias, float* out_magScale)
 	float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
 	avg_rad /= 3.0;
 
-	out_magScale[0] = avg_rad / ((float)mag_scale[0]);
-	out_magScale[1] = avg_rad / ((float)mag_scale[1]);
-	out_magScale[2] = avg_rad / ((float)mag_scale[2]);
+	cal->magScale[0] = avg_rad / ((float)mag_scale[0]);
+	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
+	cal->magScale[2] = avg_rad / ((float)mag_scale[2]);
 }

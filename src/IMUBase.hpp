@@ -53,8 +53,8 @@ public:
 	virtual int setGyroRange(int range) = 0;
 	virtual int setAccelRange(int range) = 0;
 
-	virtual void calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) = 0;
-	virtual void calibrateMag(float* out_magBias, float* out_magScale) = 0;
+	virtual void calibrateAccelGyro(calData* cal) = 0;
+	virtual void calibrateMag(calData* cal) = 0;
 
 	virtual bool hasMagnetometer() {
 		return false;

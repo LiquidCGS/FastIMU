@@ -168,7 +168,7 @@ int MPU6050::setGyroRange(int range) {
 	return 0;
 }
 
-void MPU6050::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
+void MPU6050::calibrateAccelGyro(calData* cal) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
 	uint16_t ii, packet_count, fifo_count;
@@ -246,12 +246,13 @@ void MPU6050::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	}
 
 	// Output scaled accelerometer biases for display in the main program
-	out_accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
-	out_accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
-	out_accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
+	cal->accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
+	cal->accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
+	cal->accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
 
 	// Output scaled gyro biases for display in the main program
-	out_gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
-	out_gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;
-	out_gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
+	cal->gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
+	cal->gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;
+	cal->gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
+	cal->valid = true;
 }

@@ -56,8 +56,8 @@ public:
 	int setGyroRange(int range) override;
 	int setAccelRange(int range) override;
 
-	void calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) override;
-	virtual void calibrateMag(float* out_magBias, float* out_magScale) override {};
+	void calibrateAccelGyro(calData* cal) override;
+	void calibrateMag(calData* cal) override {};
 
 	bool hasMagnetometer() override {
 		return false;

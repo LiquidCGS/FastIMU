@@ -159,7 +159,7 @@ int BMI055::setGyroRange(int range) {
 	return 0;
 }
 
-void BMI055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
+void BMI055::calibrateAccelGyro(calData* cal)
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
 	uint16_t packet_count = 64; // How many sets of full gyro and accelerometer data for averaging;
@@ -230,12 +230,13 @@ void BMI055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias)
 	}
 
 	// Output scaled accelerometer biases for display in the main program
-	out_accelBias[0] = (float)accel_bias[0];
-	out_accelBias[1] = (float)accel_bias[1];
-	out_accelBias[2] = (float)accel_bias[2];
+	cal->accelBias[0] = (float)accel_bias[0];
+	cal->accelBias[1] = (float)accel_bias[1];
+	cal->accelBias[2] = (float)accel_bias[2];
 
 	// Output scaled gyro biases for display in the main program
-	out_gyroBias[0] = (float)gyro_bias[0];
-	out_gyroBias[1] = (float)gyro_bias[1];
-	out_gyroBias[2] = (float)gyro_bias[2];
+	cal->gyroBias[0] = (float)gyro_bias[0];
+	cal->gyroBias[1] = (float)gyro_bias[1];
+	cal->gyroBias[2] = (float)gyro_bias[2];
+	cal->valid = true;
 }
