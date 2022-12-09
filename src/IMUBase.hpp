@@ -50,6 +50,9 @@ public:
 	virtual void getQuat(float* out) = 0;
 	virtual float getTemp() = 0;
 
+	virtual int setGyroRange(uint8_t range) = 0;
+	virtual int setAccelRange(uint8_t range) = 0;
+
 	virtual void calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) = 0;
 	virtual void calibrateMag(float* out_magBias, float* out_magScale) = 0;
 

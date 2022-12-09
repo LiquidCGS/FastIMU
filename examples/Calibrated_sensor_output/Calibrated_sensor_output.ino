@@ -1,8 +1,8 @@
 #include "FastIMU.h"
 
-#define IMU_ADDRESS 0x68    //Change to the address of the IMU
-#define PERFORM_CALIBRATION //Comment to disable startup calibration
-MPU6050 IMU;                //Change "MPU6050" to the name of any supported IMU!
+#define IMU_ADDRESS 0x69    //Change to the address of the IMU
+//#define PERFORM_CALIBRATION //Comment to disable startup calibration
+BMI055 IMU;                //Change "BMI055" to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055
 
@@ -21,7 +21,7 @@ void setup() {
   while (!Serial) {
     ;
   }
-  
+
   int err = IMU.init(calib, IMU_ADDRESS);
   if (err != 0) {
     Serial.print("Error initializing IMU: ");
@@ -30,6 +30,11 @@ void setup() {
       ;
     }
   }
+  
+  //IMU.setGyroRange(0);      //USE THESE TO SET THE RANGE, IF AN IMU HAS 4 OPTIONS FOR RANGE (check datasheet)
+  //IMU.setAccelRange(0);     //0 WILL BE THE LOWEST AND THE LAST ONE FROM 0 WILL BE THE HIGHEST (in this case number 3 since it has 4 options)
+                              //IF YOUR IMU HAS 5 OPTIONS THEN IT WOULD BE NUMBER 4 AND SO ON AND SO FORTH.
+  
 #ifdef PERFORM_CALIBRATION
   Serial.println("FastIMU calibration & data example");
   if (IMU.hasMagnetometer()) {

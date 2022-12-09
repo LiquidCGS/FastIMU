@@ -143,6 +143,60 @@ void BMX055::getMag(MagData* out)
 	memcpy(out, &mag, sizeof(mag));
 }
 
+int BMX055::setAccelRange(uint8_t range) {
+	uint8_t c;
+	if (range >= 3) {
+		aRes = 16.f / 2048.f;			//ares value for full range (16g) readings
+		c = 0x0C;
+	}
+	else if (range == 2) {
+		aRes = 8.f / 2048.f;			//ares value for range (8g) readings
+		c = 0x08;
+	}
+	else if (range == 1) {
+		aRes = 4.f / 2048.f;			//ares value for range (4g) readings
+		c = 0x05;
+	}
+	else if (range == 0) {
+		aRes = 2.f / 2048.f;			//ares value for range (2g) readings
+		c = 0x03;
+	}
+	else {
+		return -1;
+	}
+	writeByte(AccelAddress, BMX055_PMU_RANGE, c); // Write new BMX055_PMU_RANGE register value
+	return 0;
+}
+
+int BMX055::setGyroRange(uint8_t range) {
+	uint8_t c;
+	if (range >= 4) {
+		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
+		c = 0x00;
+	}
+	else if (range == 3) {
+		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
+		c = 0x01;
+	}
+	else if (range == 2) {
+		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
+		c = 0x02;
+	}
+	else if (range == 1) {
+		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
+		c = 0x03;
+	}
+	else if (range == 0) {
+		gRes = 125.f / 32768.f;			//ares value for range (125dps) readings
+		c = 0x04;
+	}
+	else {
+		return -1;
+	}
+	writeByte(GyroAddress, BMX055_GYR_RANGE, c); // Write new BMX055_GYR_RANGE register value
+	return 0;
+}
+
 void BMX055::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data

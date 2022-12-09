@@ -122,6 +122,54 @@ void ICM20690::getGyro(GyroData* out)
 	memcpy(out, &gyro, sizeof(gyro));
 }
 
+int ICM20690::setAccelRange(uint8_t range) {
+	uint8_t c;
+	if (range >= 3) {
+		aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
+	}
+	else if (range == 2) {
+		aRes = 8.f / 32768.f;			//ares value for range (8g) readings
+	}
+	else if (range == 1) {
+		aRes = 4.f / 32768.f;			//ares value for range (4g) readings
+	}
+	else if (range == 0) {
+		aRes = 2.f / 32768.f;			//ares value for range (2g) readings
+	}
+	else {
+		return -1;
+	}
+	c = readByte(IMUAddress, ICM20690_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+	c = c & ~0x18;  // Clear AFS bits [4:3]
+	c = c | range << 3; // Set full scale range for the accelerometer (11 on 4:3)
+	writeByte(IMUAddress, ICM20690_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+	return 0;
+}
+
+int ICM20690::setGyroRange(uint8_t range) {
+	uint8_t c;
+	if (range >= 3) {
+		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
+	}
+	else if (range == 2) {
+		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
+	}
+	else if (range == 1) {
+		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
+	}
+	else if (range == 0) {
+		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
+	}
+	else {
+		return -1;
+	}
+	c = readByte(IMUAddress, ICM20690_GYRO_CONFIG); // get current GYRO_CONFIG register value
+	c = c & ~0x18;  // Clear AFS bits [4:3]
+	c = c | range << 3; // Set full scale range for the accelerometer (11 on 4:3)
+	writeByte(IMUAddress, ICM20690_GYRO_CONFIG, c); // Write new GYRO_CONFIG register value
+	return 0;
+}
+
 void ICM20690::calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
