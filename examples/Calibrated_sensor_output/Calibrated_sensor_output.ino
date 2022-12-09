@@ -1,10 +1,10 @@
 #include "FastIMU.h"
 
-#define IMU_ADDRESS 0x69    //Change to the address of the IMU
+#define IMU_ADDRESS 0x68    //Change to the address of the IMU
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
-BMX055 IMU;                 //Change "BMX055" to the name of any supported IMU!
+MPU6050 IMU;                //Change "MPU6050" to the name of any supported IMU!
 
-// Currently supported IMUS: MPU9255 MPU9250 MPU6500 ICM20689 BMI055 BMX055
+// Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 BMI055 BMX055
 
 calData calib = { 0 };  //Calibration data
 AccelData accelData;    //Sensor data
