@@ -7,5 +7,6 @@ Currently supported IMUS:
 * MPU6500 
 * MPU6050 (Currently untested)
 * ICM20689 
+* ICM20690 
 * BMI055 
 * BMX055 (Magnetometer currently untested)
