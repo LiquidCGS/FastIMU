@@ -47,7 +47,7 @@ public:
 	virtual void getAccel(AccelData* out) = 0;
 	virtual void getGyro(GyroData* out) = 0;
 	virtual void getMag(MagData* out) = 0;
-	virtual void getQuat(float* out) = 0;
+	virtual void getQuat(Quaternion* out) = 0;
 	virtual float getTemp() = 0;
 
 	virtual int setGyroRange(int range) = 0;

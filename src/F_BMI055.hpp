@@ -50,7 +50,7 @@ public:
 	void getAccel(AccelData* out) override;
 	void getGyro(GyroData* out) override;
 	void getMag(MagData* out) override {};
-	void getQuat(float* out) override {};
+	void getQuat(Quaternion* out) override {};
 	float getTemp() override { return temperature; };
 
 	int setGyroRange(int range) override;
