@@ -101,7 +101,7 @@ void MPU6050::update() {
 	accel.accelZ = (float)IMUCount[2] * aRes - calibration.accelBias[2];
 
 	// Calculate the temperature value into actual deg c
-	temperature = (((float)IMUCount[3] - 21.0f) / 333.87f) + 21.0f;
+	temperature = (((float)IMUCount[3] / 340.f) + 36.53f;
 
 	// Calculate the gyro value into actual degrees per second
 	gyro.gyroX = (float)IMUCount[4] * gRes - calibration.gyroBias[0];
