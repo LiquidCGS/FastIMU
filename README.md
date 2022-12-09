@@ -5,7 +5,7 @@ Currently supported IMUS:
 * MPU9255 
 * MPU9250 
 * MPU6500 
-* MPU6050 (Currently untested)
+* MPU6050
 * ICM20689 
 * ICM20690 
 * BMI055 
