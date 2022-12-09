@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/LiquidCGS/FastIMU.git"
     },
-    "version": "1.0.0",
+    "version": "1.0.1",
     "export": {
         "exclude": [
             "datasheets",
