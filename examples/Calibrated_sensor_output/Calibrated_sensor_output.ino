@@ -31,9 +31,15 @@ void setup() {
     }
   }
   
-  //IMU.setGyroRange(0);      //USE THESE TO SET THE RANGE, IF AN IMU HAS 4 OPTIONS FOR RANGE (check datasheet)
-  //IMU.setAccelRange(0);     //0 WILL BE THE LOWEST AND THE LAST ONE FROM 0 WILL BE THE HIGHEST (in this case number 3 since it has 4 options)
-                              //IF YOUR IMU HAS 5 OPTIONS THEN IT WOULD BE NUMBER 4 AND SO ON AND SO FORTH.
+  err = IMU.setGyroRange(500);      //USE THESE TO SET THE RANGE, IF AN INVALID RANGE IS SET IT WILL RETURN -1
+  err = IMU.setAccelRange(2);       //THESE TWO SET THE GYRO RANGE TO ±500 DPS AND THE ACCELEROMETER RANGE TO ±2g
+  if (err != 0) {
+    Serial.print("Error Setting range: ");
+    Serial.println(err);
+    while (true) {
+      ;
+    }
+  }                            //IF YOUR IMU HAS 5 OPTIONS THEN IT WOULD BE NUMBER 4 AND SO ON AND SO FORTH.
   
 #ifdef PERFORM_CALIBRATION
   Serial.println("FastIMU calibration & data example");

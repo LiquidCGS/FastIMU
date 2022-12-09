@@ -143,21 +143,21 @@ void BMX055::getMag(MagData* out)
 	memcpy(out, &mag, sizeof(mag));
 }
 
-int BMX055::setAccelRange(uint8_t range) {
+int BMX055::setAccelRange(int range) {
 	uint8_t c;
-	if (range >= 3) {
+	if (range == 16) {
 		aRes = 16.f / 2048.f;			//ares value for full range (16g) readings
 		c = 0x0C;
 	}
-	else if (range == 2) {
+	else if (range == 8) {
 		aRes = 8.f / 2048.f;			//ares value for range (8g) readings
 		c = 0x08;
 	}
-	else if (range == 1) {
+	else if (range == 4) {
 		aRes = 4.f / 2048.f;			//ares value for range (4g) readings
 		c = 0x05;
 	}
-	else if (range == 0) {
+	else if (range == 2) {
 		aRes = 2.f / 2048.f;			//ares value for range (2g) readings
 		c = 0x03;
 	}
@@ -168,25 +168,25 @@ int BMX055::setAccelRange(uint8_t range) {
 	return 0;
 }
 
-int BMX055::setGyroRange(uint8_t range) {
+int BMX055::setGyroRange(int range) {
 	uint8_t c;
-	if (range >= 4) {
+	if (range == 2000) {
 		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
 		c = 0x00;
 	}
-	else if (range == 3) {
+	else if (range == 1000) {
 		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
 		c = 0x01;
 	}
-	else if (range == 2) {
+	else if (range == 500) {
 		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
 		c = 0x02;
 	}
-	else if (range == 1) {
+	else if (range == 250) {
 		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
 		c = 0x03;
 	}
-	else if (range == 0) {
+	else if (range == 125) {
 		gRes = 125.f / 32768.f;			//ares value for range (125dps) readings
 		c = 0x04;
 	}

@@ -82,8 +82,8 @@ public:
 	void getQuat(float* out) override {};
 	float getTemp() override { return temperature; };
 
-	int setGyroRange(uint8_t range) override;
-	int setAccelRange(uint8_t range) override;
+	int setGyroRange(int range) override;
+	int setAccelRange(int range) override;
 
 	void calibrateAccelGyro(float* out_accelBias, float* out_gyroBias) override;
 	virtual void calibrateMag(float* out_magBias, float* out_magScale) override {};
