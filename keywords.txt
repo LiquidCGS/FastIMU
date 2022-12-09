@@ -4,9 +4,22 @@
 
 IMU	KEYWORD1
 
+calData		KEYWORD1
+AccelData	KEYWORD1
+GyroData	KEYWORD1
+MagData		KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
+calibrateAccelGyro	KEYWORD2
+calibrateMag		KEYWORD2
+hasMagnetometer		KEYWORD2
+getAccel		KEYWORD2
+getGyro			KEYWORD2
+getMag			KEYWORD2
+getTemp			KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
