@@ -4,7 +4,7 @@
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
 MPU6050 IMU;                //Change "MPU6050" to the name of any supported IMU!
 
-// Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 BMI055 BMX055
+// Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055
 
 calData calib = { 0 };  //Calibration data
 AccelData accelData;    //Sensor data
