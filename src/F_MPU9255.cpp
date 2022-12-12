@@ -153,9 +153,9 @@ void MPU9255::update() {
 			magCount[2] = ((int16_t)rawData[5] << 8) | rawData[4];
 		}
 
-		mag.magX = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
-		mag.magY = (float)(magCount[1] * mRes * factoryMagCal[1] - calibration.magBias[1]) * calibration.magScale[1];
-		mag.magZ = (float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
+		mag.magX = (float)(magCount[1] * mRes * factoryMagCal[1] - calibration.magBias[1]) * calibration.magScale[1];
+		mag.magY = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
+		mag.magZ = -(float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
 
 		//    // Apply mag soft iron error compensation
 		//    mx = x * calibration.mag_softiron_matrix[0][0] + y * calibration.mag_softiron_matrix[0][1] + z * calibration.mag_softiron_matrix[0][2];
