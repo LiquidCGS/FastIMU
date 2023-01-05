@@ -4,32 +4,32 @@
 #include <Wire.h>
 #include "Arduino.h"
 
-typedef struct AccelData {
+struct AccelData {
 	float accelX;
 	float accelY;
 	float accelZ;
 };
 
-typedef struct GyroData {
+struct GyroData {
 	float gyroX;
 	float gyroY;
 	float gyroZ;
 };
 
-typedef struct MagData {
+struct MagData {
 	float magX;
 	float magY;
 	float magZ;
 };
 
-typedef struct Quaternion {
+struct Quaternion {
 	float qW;
 	float qX;
 	float qY;
 	float qZ;
 };
 
-typedef struct calData {
+struct calData {
 	bool valid;
 	float accelBias[3];
 	float gyroBias[3];
