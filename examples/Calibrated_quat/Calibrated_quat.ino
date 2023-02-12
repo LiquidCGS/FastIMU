@@ -1,15 +1,17 @@
 #include "FastIMU.h"
+#include "Madgwick.h"
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
-ICM20689 IMU;               //Change to the name of any supported IMU! 
+ICM20689 IMU;               //Change to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL
 
 calData calib = { 0 };  //Calibration data
-AccelData accelData;    //Sensor data
-GyroData gyroData;
-MagData magData;
+AccelData IMUAccel;    //Sensor data
+GyroData IMUGyro;
+MagData IMUMag;
+Madgwick filter;
 
 void setup() {
   Serial.begin(115200);
@@ -25,7 +27,7 @@ void setup() {
       ;
     }
   }
- 
+
   if (err != 0) {
     Serial.print("Error Setting range: ");
     Serial.println(err);
@@ -33,9 +35,9 @@ void setup() {
       ;
     }
   }
-  
+
 #ifdef PERFORM_CALIBRATION
-  Serial.println("FastIMU calibration & data example");
+  Serial.println("FastIMU Calibrated Quaternion example");
   if (IMU.hasMagnetometer()) {
     delay(1000);
     Serial.println("Move IMU in figure 8 pattern until done.");
@@ -44,10 +46,8 @@ void setup() {
     Serial.println("Magnetic calibration done!");
   }
   else {
-    delay(5000);
+    delay(1000);
   }
-
-  delay(5000);
   Serial.println("Keep IMU level.");
   delay(5000);
   IMU.calibrateAccelGyro(&calib);
@@ -81,36 +81,28 @@ void setup() {
   delay(5000);
   IMU.init(calib, IMU_ADDRESS);
 
-  err = IMU.setGyroRange(500);      //USE THESE TO SET THE RANGE, IF AN INVALID RANGE IS SET IT WILL RETURN -1
-  err = IMU.setAccelRange(2);       //THESE TWO SET THE GYRO RANGE TO ±500 DPS AND THE ACCELEROMETER RANGE TO ±2g
+  filter.begin(0.2f);
 #endif
 }
 
 void loop() {
   IMU.update();
-  IMU.getAccel(&accelData);
-  Serial.print(accelData.accelX);
-  Serial.print("\t");
-  Serial.print(accelData.accelY);
-  Serial.print("\t");
-  Serial.print(accelData.accelZ);
-  Serial.print("\t");
-  IMU.getGyro(&gyroData);
-  Serial.print(gyroData.gyroX);
-  Serial.print("\t");
-  Serial.print(gyroData.gyroY);
-  Serial.print("\t");
-  Serial.print(gyroData.gyroZ);
+  IMU.getAccel(&IMUAccel);
+  IMU.getGyro(&IMUGyro);
   if (IMU.hasMagnetometer()) {
-    IMU.getMag(&magData);
-    Serial.print("\t");
-    Serial.print(magData.magX);
-    Serial.print("\t");
-    Serial.print(magData.magY);
-    Serial.print("\t");
-    Serial.print(magData.magZ);
+    IMU.getMag(&IMUMag);
+    filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
   }
-  Serial.print("\t");
-  Serial.println(IMU.getTemp());
+  else {
+    filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+  }
+  Serial.print("QW: ");
+  Serial.print(filter.getQuatW());
+  Serial.print("\tQX: ");
+  Serial.print(filter.getQuatX());
+  Serial.print("\tQY: ");
+  Serial.print(filter.getQuatY());
+  Serial.print("\tQZ: ");
+  Serial.println(filter.getQuatZ());
   delay(50);
 }

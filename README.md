@@ -10,6 +10,9 @@ Currently supported IMUS:
 * ICM20690 
 * BMI055 
 * BMX055 (Magnetometer currently untested)
+* BMI160
+* LSM6DS3 
+* LSM6DSL (currently untested)
 
 ## Data types
 

@@ -11,5 +11,8 @@
 #include "F_ICM20690.hpp"
 #include "F_BMI055.hpp"
 #include "F_BMX055.hpp"
+#include "F_BMI160.hpp"
+#include "F_LSM6DS3.hpp"
+#include "F_LSM6DSL.hpp"
 
 #endif /* _FastIMU_H_ */
