@@ -2,6 +2,8 @@
 #include "Madgwick.h"
 #include "HID.h"
 
+//This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
+
 #define IMU_ADDRESS 0x69    //Change to the address of the IMU
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
 BMI160 IMU;                 //Change to the name of any supported IMU!

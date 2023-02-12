@@ -25,14 +25,6 @@ void setup() {
       ;
     }
   }
- 
-  if (err != 0) {
-    Serial.print("Error Setting range: ");
-    Serial.println(err);
-    while (true) {
-      ;
-    }
-  }
   
 #ifdef PERFORM_CALIBRATION
   Serial.println("FastIMU calibration & data example");
@@ -80,10 +72,18 @@ void setup() {
   }
   delay(5000);
   IMU.init(calib, IMU_ADDRESS);
-
-  err = IMU.setGyroRange(500);      //USE THESE TO SET THE RANGE, IF AN INVALID RANGE IS SET IT WILL RETURN -1
-  err = IMU.setAccelRange(2);       //THESE TWO SET THE GYRO RANGE TO ±500 DPS AND THE ACCELEROMETER RANGE TO ±2g
 #endif
+
+  //err = IMU.setGyroRange(500);      //USE THESE TO SET THE RANGE, IF AN INVALID RANGE IS SET IT WILL RETURN -1
+  //err = IMU.setAccelRange(2);       //THESE TWO SET THE GYRO RANGE TO ±500 DPS AND THE ACCELEROMETER RANGE TO ±2g
+  
+  if (err != 0) {
+    Serial.print("Error Setting range: ");
+    Serial.println(err);
+    while (true) {
+      ;
+    }
+  }
 }
 
 void loop() {
