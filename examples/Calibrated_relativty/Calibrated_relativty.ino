@@ -6,7 +6,6 @@
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
 #define IMU_ADDRESS 0x69    //Change to the address of the IMU
-#define PERFORM_CALIBRATION //Comment to disable startup calibration
 BMI160 IMU;                 //Change to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL
@@ -108,7 +107,13 @@ void loop() {
   IMU.update();
   IMU.getAccel(&IMUAccel);
   IMU.getGyro(&IMUGyro);
-  filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+  if (IMU.hasMagnetometer()) {
+    IMU.getMag(&IMUMag);
+    filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
+  }
+  else {
+    filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+  }
   quat[0] = filter.getQuatW();
   quat[1] = filter.getQuatY();
   quat[2] = filter.getQuatZ();
