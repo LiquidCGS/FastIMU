@@ -1,6 +1,7 @@
 #include "FastIMU.h"
 #include "Madgwick.h"
 #include "HID.h"
+#include "EEPROM.h"
 
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
@@ -15,6 +16,8 @@ AccelData IMUAccel;    //Sensor data
 GyroData IMUGyro;
 MagData IMUMag;
 Madgwick filter;
+bool flag;
+
 
 static const uint8_t _hidReportDescriptor[] PROGMEM = {
 
@@ -36,19 +39,72 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 float quat[4];
 
 void setup() {
+  int calStatus = 0;
+  Serial.begin(9600);
   static HIDSubDescriptor node (_hidReportDescriptor, sizeof(_hidReportDescriptor));
   HID().AppendDescriptor(&node);
+  EEPROM.get(100, calStatus);
+  if (calStatus == 99) {
+    EEPROM.get(200, calib);
+  }
   IMU.init(calib, IMU_ADDRESS);
-
-#ifdef PERFORM_CALIBRATION
-  delay(5000);
-  IMU.calibrateAccelGyro(&calib);
-  IMU.init(calib, IMU_ADDRESS);
-#endif
   filter.begin(0.025f);
 }
 
 void loop() {
+  if (Serial) {
+    if (!flag) {
+      Serial.println("Serial monitor open, do you want to enter calibration mode? (y/n)");
+    }
+    flag = true;
+    if (Serial.read() == 'y') {
+      Serial.println("Calibrating IMU... Lay IMU flat side down on a level surface...");
+      delay(10000);
+      IMU.calibrateAccelGyro(&calib);
+      IMU.init(calib, IMU_ADDRESS);
+      Serial.println("Accelerometer and Gyroscope calibrated!");
+      if (IMU.hasMagnetometer()) {
+        delay(1000);
+        Serial.println("Magnetometer calibration: move IMU in figure 8 pattern until done.");
+        delay(5000);
+        IMU.calibrateMag(&calib);
+        Serial.println("Magnetic calibration done!");
+      }
+      Serial.println("IMU Calibration complete!");
+      Serial.println("Accel biases X/Y/Z: ");
+      Serial.print(calib.accelBias[0]);
+      Serial.print(", ");
+      Serial.print(calib.accelBias[1]);
+      Serial.print(", ");
+      Serial.println(calib.accelBias[2]);
+      Serial.println("Gyro biases X/Y/Z: ");
+      Serial.print(calib.gyroBias[0]);
+      Serial.print(", ");
+      Serial.print(calib.gyroBias[1]);
+      Serial.print(", ");
+      Serial.println(calib.gyroBias[2]);
+      if (IMU.hasMagnetometer()) {
+        Serial.println("Mag biases X/Y/Z: ");
+        Serial.print(calib.magBias[0]);
+        Serial.print(", ");
+        Serial.print(calib.magBias[1]);
+        Serial.print(", ");
+        Serial.println(calib.magBias[2]);
+        Serial.println("Mag Scale X/Y/Z: ");
+        Serial.print(calib.magScale[0]);
+        Serial.print(", ");
+        Serial.print(calib.magScale[1]);
+        Serial.print(", ");
+        Serial.println(calib.magScale[2]);
+      }
+      Serial.println("Saving Calibration values to EEPROM!");
+      EEPROM.put(200, calib);
+      EEPROM.put(100, 99);
+      delay(1000);
+      Serial.println("You can now close the Serial monitor.");
+      delay(5000);
+    }
+  }
   IMU.update();
   IMU.getAccel(&IMUAccel);
   IMU.getGyro(&IMUGyro);
@@ -57,6 +113,6 @@ void loop() {
   quat[1] = filter.getQuatY();
   quat[2] = filter.getQuatZ();
   quat[3] = filter.getQuatX();
-  
-  HID().SendReport(1,quat,63);
+
+  HID().SendReport(1, quat, 63);
 }
