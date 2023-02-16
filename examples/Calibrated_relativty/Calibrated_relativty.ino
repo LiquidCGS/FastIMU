@@ -5,18 +5,24 @@
 
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
-#define IMU_ADDRESS 0x69    //Change to the address of the IMU
-BMI160 IMU;                 //Change to the name of any supported IMU!
+#define IMU_ADDRESS 0x68    //Change to the address of the IMU
+MPU6050 IMU;                 //Change to the name of any supported IMU!
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL
+
+#define FILTER_MAX_BETA 0.15
+#define FILTER_MIN_BETA 0.015
+#define FILTER_DROPOFF  0.85      //filter values
 
 calData calib = { 0 };  //Calibration data
 AccelData IMUAccel;    //Sensor data
 GyroData IMUGyro;
 MagData IMUMag;
+
+GyroData GyroVel;   //used for angular velocity based filter beta
+
 Madgwick filter;
 bool flag;
-
 
 static const uint8_t _hidReportDescriptor[] PROGMEM = {
 
@@ -47,7 +53,20 @@ void setup() {
     EEPROM.get(200, calib);
   }
   IMU.init(calib, IMU_ADDRESS);
-  filter.begin(0.025f);
+
+  filter.begin(2.f);                                                      //warm up filter before use
+  for (int i = 0; i < 2000; i++) {                                  
+    IMU.update();
+    IMU.getAccel(&IMUAccel);
+    IMU.getGyro(&IMUGyro);
+    if (IMU.hasMagnetometer()) {
+      IMU.getMag(&IMUMag);
+      filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
+    }
+    else {
+      filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+    }
+  }
 }
 
 void loop() {
@@ -57,6 +76,8 @@ void loop() {
     }
     flag = true;
     if (Serial.read() == 'y') {
+      calib = { 0 };                    //this looks important
+      IMU.init(calib, IMU_ADDRESS);     
       Serial.println("Calibrating IMU... Lay IMU flat side down on a level surface...");
       delay(10000);
       IMU.calibrateAccelGyro(&calib);
@@ -107,6 +128,11 @@ void loop() {
   IMU.update();
   IMU.getAccel(&IMUAccel);
   IMU.getGyro(&IMUGyro);
+
+  float Av = GyroVel.gyroX * GyroVel.gyroX + GyroVel.gyroY * GyroVel.gyroY + GyroVel.gyroZ * GyroVel.gyroZ; //sqr magnitude
+  if (Av > 100.f) Av = 100.f;                                                             
+  filter.changeBeta(Av * (FILTER_MAX_BETA - FILTER_MIN_BETA) / 100 + FILTER_MIN_BETA);                      //some stuff
+
   if (IMU.hasMagnetometer()) {
     IMU.getMag(&IMUMag);
     filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
@@ -114,6 +140,14 @@ void loop() {
   else {
     filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
   }
+
+  GyroVel.gyroX += IMUGyro.gyroX * filter.delta_t;
+  GyroVel.gyroY += IMUGyro.gyroY * filter.delta_t;
+  GyroVel.gyroZ += IMUGyro.gyroZ * filter.delta_t;
+  GyroVel.gyroX *= FILTER_DROPOFF;
+  GyroVel.gyroY *= FILTER_DROPOFF;
+  GyroVel.gyroZ *= FILTER_DROPOFF;                  //velocity calculations and dropoff...
+  
   quat[0] = filter.getQuatW();
   quat[1] = filter.getQuatY();
   quat[2] = filter.getQuatZ();
