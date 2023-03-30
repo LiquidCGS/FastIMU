@@ -1,4 +1,4 @@
-#include "F_MPU6885.hpp"
+#include "F_MPU6886.hpp"
 
 //Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
 
