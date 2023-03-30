@@ -7,7 +7,7 @@
 //This code will check for an IMU when reset and, if one is found, it will report what it is.
 //To re run the check without resetting the Arduino, pull pin 4 to GND.
 
-#define NUM_IMUS 32
+#define NUM_IMUS 33
 
 struct IMU {
   uint8_t Address1;
@@ -23,6 +23,7 @@ IMU IMUList[NUM_IMUS] =
 {
   {0x68, 0x69, 0x75, 0x68, "MPU6050",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x70, "MPU6500",   "3A,3G",    true},
+  {0x68, 0x69, 0x75, 0x75, "MPU6886",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x71, "MPU9250",   "3A,3G,3M", true},
   {0x68, 0x69, 0x75, 0x73, "MPU9255",   "3A,3G,3M", true},
   {0x69, 0x68, 0x00, 0xD1, "BMI160",    "3A,3G",    true},
