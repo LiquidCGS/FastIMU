@@ -3,9 +3,6 @@
 int BMI055::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
-	Wire.begin();
-	Wire.setClock(400000); //400khz clock
-
 	if (address == 0x18 || address == 0x68) {
 		AccelAddress = 0x18;
 		GyroAddress = 0x68;

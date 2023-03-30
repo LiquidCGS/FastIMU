@@ -1,5 +1,6 @@
 #include "FastIMU.h"
 #include "Madgwick.h"
+#include <Wire.h>
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 #define PERFORM_CALIBRATION //Comment to disable startup calibration
@@ -14,6 +15,9 @@ MagData IMUMag;
 Madgwick filter;
 
 void setup() {
+  Wire.begin();
+  Wire.setClock(400000); //400khz clock
+
   Serial.begin(115200);
   while (!Serial) {
     ;

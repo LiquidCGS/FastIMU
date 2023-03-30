@@ -2,7 +2,7 @@
 #include "Madgwick.h"
 #include "HID.h"
 #include "EEPROM.h"
-
+#include <Wire.h>
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
@@ -44,6 +44,9 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 float quat[4];
 
 void setup() {
+  Wire.begin();
+  Wire.setClock(400000); //400khz clock
+
   int calStatus = 0;
   Serial.begin(9600);
   static HIDSubDescriptor node (_hidReportDescriptor, sizeof(_hidReportDescriptor));
