@@ -108,6 +108,7 @@ int MPU9255::initMagnetometer()
 	// and enable continuous mode data acquisition Mmode (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
 	writeByte(AK8963_ADDRESS, AK8963_CNTL, (uint8_t)1 << 4 | 0x06); // Set magnetometer data resolution and sample ODR
 	delay(10);
+	return 0;
 }
 
 void MPU9255::update() {
