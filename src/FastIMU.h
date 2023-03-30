@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include "F_MPU9250.hpp"
 #include "F_MPU9255.hpp"
+#include "F_MPU6889.hpp"
 #include "F_MPU6500.hpp"
 #include "F_MPU6050.hpp"
 #include "F_ICM20689.hpp"
