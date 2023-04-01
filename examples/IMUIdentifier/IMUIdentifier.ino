@@ -9,6 +9,8 @@
 
 #define NUM_IMUS 33
 
+bool errorflag;
+
 struct IMU {
   uint8_t Address1;
   uint8_t Address2;
@@ -50,15 +52,17 @@ IMU IMUList[NUM_IMUS] =
   {0x68, 0x69, 0x75, 0x4E, "ICM40627",  "3A,3G",    false},
   {0x68, 0x69, 0x75, 0x42, "ICM42605",  "3A,3G",    false},
   {0x68, 0x69, 0x75, 0x6F, "IIM42652",  "3A,3G",    false},
-  {0x68, 0x69, 0x75, 0x67, "ICM42670-P","3A,3G",    false},
-  {0x68, 0x69, 0x75, 0xDB, "ICM42688-V","3A,3G",    false},
+  {0x68, 0x69, 0x75, 0x67, "ICM42670-P", "3A,3G",    false},
+  {0x68, 0x69, 0x75, 0xDB, "ICM42688-V", "3A,3G",    false},
   {0x18, 0x19, 0x00, 0xFA, "BMI055 or BMX055", "3A,3G or 3A,3G,3M", true},
   {0x68, 0x69, 0x00, 0x68, "MPU3050",   "3G",       false}
 };
 
 void setup() {
+  errorflag = false;
   pinMode(4, INPUT_PULLUP);
   Wire.begin();
+  Wire.setWireTimeout(3000);
   Serial.begin(9600);
   while (!Serial) ;
   Serial.println("\n=========== IMU Identifier ===========");
@@ -71,6 +75,22 @@ void loop() {
   bool detected = false;
   for (int i = 0; i < NUM_IMUS; i++)
   {
+     if(errorflag || Wire.getWireTimeoutFlag()){
+         Serial.print("Error while reading address 0x");
+         Serial.print(IMUList[i].Address1, HEX);
+         Serial.print(": ");
+         if (Wire.getWireTimeoutFlag()){
+          Serial.println("I2C bus timed out. (Bad IMU? check wiring.)");
+         }
+         else{
+          Serial.println("Unknown error while reading/writing");
+         }
+         Serial.println("======================================");
+         Wire.clearWireTimeoutFlag();
+         errorflag = false;
+         delay(2000);
+         return;
+     }
     if (readByte(IMUList[i].Address1, IMUList[i].Register) == IMUList[i].ExpectedID)
     {
       detected = true;
@@ -119,8 +139,18 @@ uint8_t readByte(uint8_t address, uint8_t subAddress)
   uint8_t data;                            // `data` will store the register data
   Wire.beginTransmission(address);         // Initialize the Tx buffer
   Wire.write(subAddress);                  // Put slave register address in Tx buffer
-  Wire.endTransmission(false);             // Send the Tx buffer, but send a restart to keep connection alive
-  Wire.requestFrom(address, (uint8_t) 1);  // Read one byte from slave register address
-  data = Wire.read();                      // Fill Rx buffer with result
+  int i = Wire.endTransmission(false);     // Send the Tx buffer, but send a restart to keep connection alive
+  if (i == 5) {
+    return 0;
+    errorflag = true;
+  }
+  i = Wire.requestFrom(address, (uint8_t) 1, true); // Read one byte from slave register address
+  if (i == 0) {
+    return 0;
+    errorflag = true;
+  }
+  if (Wire.available()) {
+    data = Wire.read();                      // Fill Rx buffer with result
+  }
   return data;                             // Return data read from slave register
 }
