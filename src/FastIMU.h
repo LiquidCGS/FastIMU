@@ -15,6 +15,6 @@
 #include "F_BMI160.hpp"
 #include "F_LSM6DS3.hpp"
 #include "F_LSM6DSL.hpp"
-#include "F_Generic.hpp"
+#include "F_IMU_Generic.hpp"
 
 #endif /* _FastIMU_H_ */

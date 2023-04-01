@@ -1,8 +1,8 @@
-#include "F_Generic.hpp"
+#include "F_IMU_Generic.hpp"
 
-//Original code: https://github.com/hideakitai/Generic/blob/master/Generic.h
+//Original code: https://github.com/hideakitai/IMU_Generic/blob/master/IMU_Generic.h
 
-int Generic::init(calData cal, uint8_t address) 
+int IMU_Generic::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;
@@ -19,19 +19,19 @@ int Generic::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (readByte(IMUAddress, Generic_WHO_AM_I_Generic) == 0xFF) {
+	if (readByte(IMUAddress, IMU_Generic_WHO_AM_I_IMU_Generic) == 0xFF) {
 		return -1;
 	}
 
 	// reset device
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
 	delay(100);
 	// wake up device
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors
 	delay(100); // Wait for all registers to reset
 
 	// get stable time source
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x01);  // Auto select clock source to be PLL gyroscope reference if ready else
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x01);  // Auto select clock source to be PLL gyroscope reference if ready else
 	delay(200);
 
 	// Configure Gyro and Thermometer
@@ -39,37 +39,37 @@ int Generic::init(calData cal, uint8_t address)
 	// minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
 	// be higher than 1 / 0.0059 = 170 Hz
 	// DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
-	// With the Generic, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
-	writeByte(IMUAddress, Generic_MPU_CONFIG, 0x03);
+	// With the IMU_Generic, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
+	writeByte(IMUAddress, IMU_Generic_MPU_CONFIG, 0x03);
 
 	// Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
-	writeByte(IMUAddress, Generic_SMPLRT_DIV, 0x02);  // Use a 500 Hz rate; a rate consistent with the filter update rate
+	writeByte(IMUAddress, IMU_Generic_SMPLRT_DIV, 0x02);  // Use a 500 Hz rate; a rate consistent with the filter update rate
 	// determined inset in CONFIG above
 
 	// Set gyroscope full scale range
 	// Range selects FS_SEL and GFS_SEL are 0 - 3, so 2-bit values are left-shifted into positions 4:3
-	uint8_t c = readByte(IMUAddress, Generic_GYRO_CONFIG); // get current GYRO_CONFIG register value
+	uint8_t c = readByte(IMUAddress, IMU_Generic_GYRO_CONFIG); // get current GYRO_CONFIG register value
 	// c = c & ~0xE0; // Clear self-test bits [7:5]
 	c = c & ~0x03; // Clear Fchoice bits [1:0]
 	c = c & ~0x18; // Clear GFS bits [4:3]
 	c = c | (uint8_t)3 << 3; // Set full scale range for the gyro (11 on 4:3)
 	// c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
-	writeByte(IMUAddress, Generic_GYRO_CONFIG, c); // Write new GYRO_CONFIG value to register
+	writeByte(IMUAddress, IMU_Generic_GYRO_CONFIG, c); // Write new GYRO_CONFIG value to register
 
 	// Set accelerometer full-scale range configuration
-	c = readByte(IMUAddress, Generic_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+	c = readByte(IMUAddress, IMU_Generic_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
 	// c = c & ~0xE0; // Clear self-test bits [7:5]
 	c = c & ~0x18;  // Clear AFS bits [4:3]
 	c = c | (uint8_t)3 << 3; // Set full scale range for the accelerometer (11 on 4:3)
-	writeByte(IMUAddress, Generic_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+	writeByte(IMUAddress, IMU_Generic_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
 
 	// Set accelerometer sample rate configuration
 	// It is possible to get a 4 kHz sample rate from the accelerometer by choosing 1 for
 	// accel_fchoice_b bit [3]; in this case the bandwidth is 1.13 kHz
-	c = readByte(IMUAddress, Generic_ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
+	c = readByte(IMUAddress, IMU_Generic_ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
 	c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
 	c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
-	writeByte(IMUAddress, Generic_ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
+	writeByte(IMUAddress, IMU_Generic_ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
 
 	// The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,
 	// but all these rates are further reduced by a factor of 5 to 200 Hz because of the SMPLRT_DIV setting
@@ -78,8 +78,8 @@ int Generic::init(calData cal, uint8_t address)
 	// Set interrupt pin active high, push-pull, hold interrupt pin level HIGH until interrupt cleared,
 	// clear on read of INT_STATUS, and enable I2C_BYPASS_EN so additional chips
 	// can join the I2C bus and all can be controlled by the Arduino as master
-	writeByte(IMUAddress, Generic_INT_PIN_CFG, 0x22);	//enable Magnetometer bypass
-	writeByte(IMUAddress, Generic_INT_ENABLE, 0x01);    // Enable data ready (bit 0) interrupt
+	writeByte(IMUAddress, IMU_Generic_INT_PIN_CFG, 0x22);	//enable Magnetometer bypass
+	writeByte(IMUAddress, IMU_Generic_INT_ENABLE, 0x01);    // Enable data ready (bit 0) interrupt
 	delay(100);
 
 	if (hasMagnetometer()) {
@@ -88,7 +88,7 @@ int Generic::init(calData cal, uint8_t address)
 	return 0;
 }
 
-int Generic::initMagnetometer() 
+int IMU_Generic::initMagnetometer() 
 {
 	// First extract the factory calibration for each magnetometer axis
 	uint8_t rawData[3];  // x/y/z gyro calibration data stored here
@@ -110,13 +110,13 @@ int Generic::initMagnetometer()
 	return 0;
 }
 
-void Generic::update() {
+void IMU_Generic::update() {
 	if (!dataAvaliable()) return;
 
-	int16_t IMUCount[7];                                          // used to read all 14 bytes at once from the Generic accel/gyro
+	int16_t IMUCount[7];                                          // used to read all 14 bytes at once from the IMU_Generic accel/gyro
 	uint8_t rawData[14];                                          // x/y/z accel register data stored here
 
-	readBytes(IMUAddress, Generic_ACCEL_XOUT_H, 14, &rawData[0]);    // Read the 14 raw data registers into data array
+	readBytes(IMUAddress, IMU_Generic_ACCEL_XOUT_H, 14, &rawData[0]);    // Read the 14 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[0] << 8) | rawData[1];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[2] << 8) | rawData[3];
@@ -162,20 +162,20 @@ void Generic::update() {
 	}
 }
 
-void Generic::getAccel(AccelData* out) 
+void IMU_Generic::getAccel(AccelData* out) 
 {
 	memcpy(out, &accel, sizeof(accel));
 }
-void Generic::getGyro(GyroData* out) 
+void IMU_Generic::getGyro(GyroData* out) 
 {
 	memcpy(out, &gyro, sizeof(gyro));
 }
-void Generic::getMag(MagData* out) 
+void IMU_Generic::getMag(MagData* out) 
 {
 	memcpy(out, &mag, sizeof(mag));
 }
 
-int Generic::setAccelRange(int range) {
+int IMU_Generic::setAccelRange(int range) {
 	uint8_t c;
 	if (range == 16) {
 		aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
@@ -196,11 +196,11 @@ int Generic::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, Generic_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+	writeByte(IMUAddress, IMU_Generic_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
 	return 0;
 }
 
-int Generic::setGyroRange(int range) {
+int IMU_Generic::setGyroRange(int range) {
 	uint8_t c;
 	if (range == 2000) {
 		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
@@ -221,59 +221,59 @@ int Generic::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, Generic_GYRO_CONFIG, c); // Write new GYRO_CONFIG register value
+	writeByte(IMUAddress, IMU_Generic_GYRO_CONFIG, c); // Write new GYRO_CONFIG register value
 	return 0;
 }
 
-void Generic::calibrateAccelGyro(calData* cal) 
+void IMU_Generic::calibrateAccelGyro(calData* cal) 
 {
 	uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
 	uint16_t ii, packet_count, fifo_count;
 	int32_t gyro_bias[3] = { 0, 0, 0 }, accel_bias[3] = { 0, 0, 0 };
 
 	// reset device
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
 	delay(100);
 
 	// get stable time source; Auto select clock source to be PLL gyroscope reference if ready
 	// else use the internal oscillator, bits 2:0 = 001
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x01);
-	writeByte(IMUAddress, Generic_PWR_MGMT_2, 0x00);
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x01);
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_2, 0x00);
 	delay(200);
 
 	// Configure device for bias calculation
-	writeByte(IMUAddress, Generic_INT_ENABLE, 0x00);   // Disable all interrupts
-	writeByte(IMUAddress, Generic_FIFO_EN, 0x00);      // Disable FIFO
-	writeByte(IMUAddress, Generic_PWR_MGMT_1, 0x00);   // Turn on internal clock source
-	writeByte(IMUAddress, Generic_I2C_MST_CTRL, 0x00); // Disable I2C master
-	writeByte(IMUAddress, Generic_USER_CTRL, 0x00);    // Disable FIFO and I2C master modes
-	writeByte(IMUAddress, Generic_USER_CTRL, 0x0C);    // Reset FIFO and DMP
+	writeByte(IMUAddress, IMU_Generic_INT_ENABLE, 0x00);   // Disable all interrupts
+	writeByte(IMUAddress, IMU_Generic_FIFO_EN, 0x00);      // Disable FIFO
+	writeByte(IMUAddress, IMU_Generic_PWR_MGMT_1, 0x00);   // Turn on internal clock source
+	writeByte(IMUAddress, IMU_Generic_I2C_MST_CTRL, 0x00); // Disable I2C master
+	writeByte(IMUAddress, IMU_Generic_USER_CTRL, 0x00);    // Disable FIFO and I2C master modes
+	writeByte(IMUAddress, IMU_Generic_USER_CTRL, 0x0C);    // Reset FIFO and DMP
 	delay(15);
 
 	// Configure MPU6050 gyro and accelerometer for bias calculation
-	writeByte(IMUAddress, Generic_MPU_CONFIG, 0x01);      // Set low-pass filter to 188 Hz
-	writeByte(IMUAddress, Generic_SMPLRT_DIV, 0x00);  // Set sample rate to 1 kHz
-	writeByte(IMUAddress, Generic_GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
-	writeByte(IMUAddress, Generic_ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
+	writeByte(IMUAddress, IMU_Generic_MPU_CONFIG, 0x01);      // Set low-pass filter to 188 Hz
+	writeByte(IMUAddress, IMU_Generic_SMPLRT_DIV, 0x00);  // Set sample rate to 1 kHz
+	writeByte(IMUAddress, IMU_Generic_GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
+	writeByte(IMUAddress, IMU_Generic_ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
 
 	uint16_t  gyrosensitivity = 131;   // = 131 LSB/degrees/sec
 	uint16_t  accelsensitivity = 16384;  // = 16384 LSB/g
 
 	// Configure FIFO to capture accelerometer and gyro data for bias calculation
-	writeByte(IMUAddress, Generic_USER_CTRL, 0x40);   // Enable FIFO
-	writeByte(IMUAddress, Generic_FIFO_EN, 0x78);     // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in MPU-9150)
+	writeByte(IMUAddress, IMU_Generic_USER_CTRL, 0x40);   // Enable FIFO
+	writeByte(IMUAddress, IMU_Generic_FIFO_EN, 0x78);     // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in MPU-9150)
 	delay(40); // accumulate 40 samples in 40 milliseconds = 480 bytes
 
 	// At end of sample accumulation, turn off FIFO sensor read
-	writeByte(IMUAddress, Generic_FIFO_EN, 0x00);        // Disable gyro and accelerometer sensors for FIFO
-	readBytes(IMUAddress, Generic_FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
+	writeByte(IMUAddress, IMU_Generic_FIFO_EN, 0x00);        // Disable gyro and accelerometer sensors for FIFO
+	readBytes(IMUAddress, IMU_Generic_FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
 	fifo_count = ((uint16_t)data[0] << 8) | data[1];
 	packet_count = fifo_count / 12;// How many sets of full gyro and accelerometer data for averaging
 
 	for (ii = 0; ii < packet_count; ii++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
-		readBytes(IMUAddress, Generic_FIFO_R_W, 12, &data[0]); // read data for averaging
+		readBytes(IMUAddress, IMU_Generic_FIFO_R_W, 12, &data[0]); // read data for averaging
 		accel_temp[0] = (int16_t)(((int16_t)data[0] << 8) | data[1]);  // Form signed 16-bit integer for each sample in FIFO
 		accel_temp[1] = (int16_t)(((int16_t)data[2] << 8) | data[3]);
 		accel_temp[2] = (int16_t)(((int16_t)data[4] << 8) | data[5]);
@@ -314,7 +314,7 @@ void Generic::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-void Generic::calibrateMag(calData* cal) 
+void IMU_Generic::calibrateMag(calData* cal) 
 {
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
