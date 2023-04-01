@@ -7,7 +7,7 @@
 //This code will check for an IMU when reset and, if one is found, it will report what it is.
 //To re run the check without resetting the Arduino, pull pin 4 to GND.
 
-#define NUM_IMUS 33
+#define NUM_IMUS 35
 
 bool errorflag;
 
@@ -25,7 +25,8 @@ IMU IMUList[NUM_IMUS] =
 {
   {0x68, 0x69, 0x75, 0x68, "MPU6050",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x70, "MPU6500",   "3A,3G",    true},
-  {0x68, 0x69, 0x75, 0x75, "MPU6886",   "3A,3G",    true},
+  {0x68, 0x69, 0x75, 0x74, "MPU6515",   "3A,3G",    true},
+  {0x68, 0x69, 0x75, 0x19, "MPU6886",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x71, "MPU9250",   "3A,3G,3M", true},
   {0x68, 0x69, 0x75, 0x73, "MPU9255",   "3A,3G,3M", true},
   {0x69, 0x68, 0x00, 0xD1, "BMI160",    "3A,3G",    true},
@@ -33,6 +34,7 @@ IMU IMUList[NUM_IMUS] =
   {0x6B, 0x6A, 0x0F, 0x6A, "LSM6DSL",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x98, "ICM20689",  "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x20, "ICM20690",  "3A,3G",    true},
+  {0x68, 0x69, 0x75, 0x75, "Unknown or fake IMU, proceed with caution, use 'Generic' as IMU type",   "3A,3G, possibly 3M?",    true},
   {0x6B, 0x6A, 0x0F, 0x6B, "LSM6DSR",   "3A,3G",    false},
   {0x68, 0x69, 0x75, 0x92, "ICG20330",  "3G",       false},
   {0x68, 0x69, 0x75, 0xB5, "IAM20380",  "3A",       false},
@@ -130,6 +132,7 @@ void loop() {
   }
   if (!detected) {
     Serial.println("No IMU detected");
+    Serial.println("======================================");
   }
   delay(1000);
 }

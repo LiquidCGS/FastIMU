@@ -128,8 +128,8 @@
 #define MPU6886_FIFO_COUNTH      0x72
 #define MPU6886_FIFO_COUNTL      0x73
 #define MPU6886_FIFO_R_W         0x74
-#define MPU6886_WHO_AM_I_MPU6886 0x75 // Should return 0x70
-#define MPU6886_WHOAMI_DEFAULT_VALUE 0x75
+#define MPU6886_WHO_AM_I_MPU6886 0x75 // Should return 0x19
+#define MPU6886_WHOAMI_DEFAULT_VALUE 0x19
 #define MPU6886_XA_OFFSET_H      0x77
 #define MPU6886_XA_OFFSET_L      0x78
 #define MPU6886_YA_OFFSET_H      0x7A
