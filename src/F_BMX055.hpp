@@ -89,6 +89,16 @@ public:
 		return false;
 	}
 
+	String IMUName() override {
+		return "BMX-055";
+	}
+	String IMUType() override {
+		return "BMX055";
+	}
+	String IMUManufacturer() override {
+		return "Bosch";
+	}
+
 private:
 	float aRes = 16.f / 2048.f;				//ares value for full range (16g) readings (12 bit)
 	float gRes = 2000.f / 32768.f;			//gres value for full range (+-2000dps) readings

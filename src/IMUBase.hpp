@@ -65,6 +65,16 @@ public:
 	virtual bool hasQuatOutput() {
 		return false;
 	}
+
+	virtual String IMUName(){
+		return "Unknown";
+	}
+	virtual String IMUType(){
+		return "Unknown";
+	}
+	virtual String IMUManufacturer(){
+		return "Unknown";
+	}
 };
 
 #endif /* _F_IMUBase_H_ */

@@ -131,6 +131,16 @@ public:
 		return false;
 	}
 
+	String IMUName() override {
+		return "BMI-160";
+	}
+	String IMUType() override {
+		return "BMI160";
+	}
+	String IMUManufacturer() override {
+		return "Bosch";
+	}
+
 private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings

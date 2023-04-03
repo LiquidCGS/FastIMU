@@ -98,6 +98,15 @@ public:
 		return false;
 	}
 
+	String IMUName() override {
+		return "MPU-6050";
+	}
+	String IMUType() override {
+		return "MPU6050";
+	}
+	String IMUManufacturer() override {
+		return "InvenSense";
+	}
 private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings

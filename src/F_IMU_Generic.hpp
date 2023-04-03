@@ -184,12 +184,21 @@ public:
 		return (readByte(AK8963_ADDRESS, AK8963_WHO_AM_I) == AK8963_WHOAMI_DEFAULT_VALUE);
 	}
 	bool hasTemperature() override {
-		return true;
+		return false;
 	}
 	bool hasQuatOutput() override {
 		return false;
 	}
 
+	String IMUName() override {
+		return "(Fake) MPU6500/MPU9250 Type.";
+	}
+	String IMUType() override {
+		return "IMU_Generic";
+	}
+	String IMUManufacturer() override {
+		return "Unknown manufacturer";
+	}
 private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
