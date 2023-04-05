@@ -16,5 +16,6 @@
 #include "F_LSM6DS3.hpp"
 #include "F_LSM6DSL.hpp"
 #include "F_IMU_Generic.hpp"
+#include "F_IMU_AUTO.hpp"
 
 #endif /* _FastIMU_H_ */
