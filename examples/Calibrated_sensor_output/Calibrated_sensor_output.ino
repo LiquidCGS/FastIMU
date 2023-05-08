@@ -113,7 +113,9 @@ void loop() {
     Serial.print("\t");
     Serial.print(magData.magZ);
   }
-  Serial.print("\t");
-  Serial.println(IMU.getTemp());
+  if (IMU.hasTemperature()) {
+	  Serial.print("\t");
+	  Serial.println(IMU.getTemp());
+  }
   delay(50);
 }

@@ -15,6 +15,7 @@ Currently supported IMUS:
 * BMI160
 * LSM6DS3 
 * LSM6DSL (currently untested)
+* QMC5883L
 
 ## Data types
 
