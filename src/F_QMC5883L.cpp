@@ -45,9 +45,9 @@ void QMC5883L::update()
 	}
 
 	// Calculate the mag value
-	mag.magX = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 1000.f;
-	mag.magY = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 1000.f;  // get actual magnetometer value, this depends on scale being set
-	mag.magZ = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 1000.f;
+	mag.magX = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
+	mag.magY = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
+	mag.magZ = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
 	
 	readBytes(IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
 	temperature = (float)((((int16_t)rawData[1] << 8) | rawData[0]) * tRes) + 20.f;
@@ -92,7 +92,7 @@ void QMC5883L::calibrateMag(calData* cal)
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2; // get average y mag bias in counts
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2; // get average z mag bias in counts
 
-	cal->magBias[0] = (float)mag_bias[0] * mRes; // save mag biases in mG for main program
+	cal->magBias[0] = (float)mag_bias[0] * mRes; // save mag biases in G for main program
 	cal->magBias[1] = (float)mag_bias[1] * mRes;
 	cal->magBias[2] = (float)mag_bias[2] * mRes;
 
