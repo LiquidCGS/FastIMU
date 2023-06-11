@@ -11,17 +11,17 @@
 
 bool errorflag;
 
-struct IMU {
+typedef struct IMU {
   uint8_t Address1;
   uint8_t Address2;
   uint8_t Register;
   uint8_t ExpectedID;
-  String  IMUName;
-  String  IMUCapabilities;
+  const char*  IMUName PROGMEM;
+  const char*  IMUCapabilities PROGMEM;
   bool    LibSupported;
 };
 
-IMU IMUList[NUM_IMUS] =
+const IMU IMUList[NUM_IMUS] =
 {
   {0x68, 0x69, 0x75, 0x68, "MPU6050",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x70, "MPU6500",   "3A,3G",    true},
@@ -69,7 +69,7 @@ void setup() {
   Wire.setWireTimeout(3000);
   Serial.begin(9600);
   while (!Serial) ;
-  Serial.println("\n=========== IMU Identifier ===========");
+  Serial.println(F("\n=========== IMU Identifier ==========="));
 }
 
 void loop() {
@@ -80,16 +80,16 @@ void loop() {
   for (int i = 0; i < NUM_IMUS; i++)
   {
      if(errorflag || Wire.getWireTimeoutFlag()){
-         Serial.print("Error while reading address 0x");
+         Serial.print(F("Error while reading address 0x"));
          Serial.print(IMUList[i].Address1, HEX);
-         Serial.print(": ");
+         Serial.print(F(": "));
          if (Wire.getWireTimeoutFlag()){
-          Serial.println("I2C bus timed out. (Bad IMU? check wiring.)");
+          Serial.println(F("I2C bus timed out. (Bad IMU? check wiring.)"));
          }
          else{
-          Serial.println("Unknown error while reading/writing");
+          Serial.println(F("Unknown error while reading/writing"));
          }
-         Serial.println("======================================");
+         Serial.println(F("======================================"));
          Wire.clearWireTimeoutFlag();
          errorflag = false;
          delay(2000);
@@ -98,43 +98,43 @@ void loop() {
     if (readByte(IMUList[i].Address1, IMUList[i].Register) == IMUList[i].ExpectedID)
     {
       detected = true;
-      Serial.print("IMU Found: ");
+      Serial.print(F("IMU Found: "));
       Serial.print(IMUList[i].IMUName);
-      Serial.print(" On address: 0x");
+      Serial.print(F(" On address: 0x"));
       Serial.println(IMUList[i].Address1, HEX);
-      Serial.print("This IMU is capable of the following axis: ");
+      Serial.print(F("This IMU is capable of the following axis: "));
       Serial.println(IMUList[i].IMUCapabilities);
       if (IMUList[i].LibSupported) {
-        Serial.println("This IMU is supported by the FastIMU library.");
+        Serial.println(F("This IMU is supported by the FastIMU library."));
       }
       else
       {
-        Serial.println("This IMU is not supported by the FastIMU library.");
+        Serial.println(F("This IMU is not supported by the FastIMU library."));
       }
-      Serial.println("======================================");
+      Serial.println(F("======================================"));
     }
     else if (readByte(IMUList[i].Address2, IMUList[i].Register) == IMUList[i].ExpectedID)
     {
       detected = true;
-      Serial.print("IMU Found: ");
+      Serial.print(F("IMU Found: "));
       Serial.print(IMUList[i].IMUName);
-      Serial.print(" On address: 0x");
+      Serial.print(F(" On address: 0x"));
       Serial.println(IMUList[i].Address2, HEX);
-      Serial.print("This IMU is capable of the following axis: ");
+      Serial.print(F("This IMU is capable of the following axis: "));
       Serial.println(IMUList[i].IMUCapabilities);
       if (IMUList[i].LibSupported) {
-        Serial.println("This IMU is supported by the FastIMU library.");
+        Serial.println(F("This IMU is supported by the FastIMU library."));
       }
       else
       {
-        Serial.println(" This IMU is not supported by the FastIMU library.");
+        Serial.println(F(" This IMU is not supported by the FastIMU library."));
       }
-      Serial.println("======================================");
+      Serial.println(F("======================================"));
     }
   }
   if (!detected) {
-    Serial.println("No IMU detected");
-    Serial.println("======================================");
+    Serial.println(F("No IMU detected"));
+    Serial.println(F("======================================"));
   }
   delay(1000);
 }
