@@ -40,9 +40,6 @@ public:
 	void getQuat(Quaternion* out) override {};
 	float getTemp() override { return temperature; };
 
-	int setGyroRange(int range) override {};
-	int setAccelRange(int range) override {};
-
 	void calibrateAccelGyro(calData* cal) override {};
 	void calibrateMag(calData* cal) override;
 
