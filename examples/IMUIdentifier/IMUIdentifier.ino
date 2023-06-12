@@ -63,12 +63,14 @@ const IMU IMUList[NUM_IMUS] =
 };
 
 void setup() {
+  Serial.begin(9600);
+  while (!Serial) ;
   errorflag = false;
   pinMode(4, INPUT_PULLUP);
   Wire.begin();
+#ifdef WIRE_HAS_TIMEOUT
   Wire.setWireTimeout(3000);
-  Serial.begin(9600);
-  while (!Serial) ;
+#endif
   Serial.println(F("\n=========== IMU Identifier ==========="));
 }
 
@@ -79,22 +81,24 @@ void loop() {
   bool detected = false;
   for (int i = 0; i < NUM_IMUS; i++)
   {
-     if(errorflag || Wire.getWireTimeoutFlag()){
-         Serial.print(F("Error while reading address 0x"));
-         Serial.print(IMUList[i].Address1, HEX);
-         Serial.print(F(": "));
-         if (Wire.getWireTimeoutFlag()){
-          Serial.println(F("I2C bus timed out. (Bad IMU? check wiring.)"));
-         }
-         else{
-          Serial.println(F("Unknown error while reading/writing"));
-         }
-         Serial.println(F("======================================"));
-         Wire.clearWireTimeoutFlag();
-         errorflag = false;
-         delay(2000);
-         return;
-     }
+#ifdef WIRE_HAS_TIMEOUT
+    if (errorflag || Wire.getWireTimeoutFlag()) {
+      Serial.print(F("Error while reading address 0x"));
+      Serial.print(IMUList[i].Address1, HEX);
+      Serial.print(F(": "));
+      if (Wire.getWireTimeoutFlag()) {
+        Serial.println(F("I2C bus timed out. (Bad IMU? check wiring.)"));
+      }
+      else {
+        Serial.println(F("Unknown error while reading/writing"));
+      }
+      Serial.println(F("======================================"));
+      Wire.clearWireTimeoutFlag();
+      errorflag = false;
+      delay(2000);
+      return;
+    }
+#endif
     if (readByte(IMUList[i].Address1, IMUList[i].Register) == IMUList[i].ExpectedID)
     {
       detected = true;
