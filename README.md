@@ -48,6 +48,8 @@ Currently supported IMUS:
 
 * ```setAccelRange``` Takes in an integer with the dps range wanted, (for example 8 for ±8g), returns 0 if successful, returns -1 if the input range is not valid.
 
+* ```setIMUGeometry``` Takes in an integer with the wanted geometry index, rotates IMU measurements to match vr headset IMU mount. (see chart below).
+
 * ```calibrateAccelGyro``` Takes in a pointer to calibration data and runs a Accelerometer and Gyroscope calibration, storing the new accelerometer and gyroscope calibration data in it. the IMU should be kept completely still and level during this.
 
 * ```calibrateMag``` Takes in a pointer to Calibration data and runs a Accelerometer and Gyroscope calibration, storing the new accelerometer and gyroscope calibration data in it. the IMU should be moved in a figure eight pattern while calibrating, calibration takes around 15 seconds.
@@ -57,5 +59,9 @@ Currently supported IMUS:
 * ```hasTemperature``` Returns true if the IMU has a thermometer.
 
 * ```hasQuatOutput``` Returns true if the IMU has a direct quaternion output.
+
+## Supported IMU VR geometries (and their index numbers):
+
+![2](MountIndex.png)
 
 ##### TODO: get DMP working for pure quaternion output from invsense IMU's
