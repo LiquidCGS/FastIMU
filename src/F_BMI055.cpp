@@ -79,15 +79,60 @@ void BMI055::update()
 	GyroCount[1] = (rawDataGyro[3] << 8) | (rawDataGyro[2]);
 	GyroCount[2] = (rawDataGyro[5] << 8) | (rawDataGyro[4]);
 
+	float ax, ay, az, gx, gy, gz;
+
 	// Calculate the accel value into actual g's per second
-	accel.accelX = AccelCount[0] * (float)aRes - calibration.accelBias[0];
-	accel.accelY = AccelCount[1] * (float)aRes - calibration.accelBias[1];
-	accel.accelZ = AccelCount[2] * (float)aRes - calibration.accelBias[2];
+	ax = AccelCount[0] * (float)aRes - calibration.accelBias[0];
+	ay = AccelCount[1] * (float)aRes - calibration.accelBias[1];
+	az = AccelCount[2] * (float)aRes - calibration.accelBias[2];
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroX = GyroCount[0] * (float)gRes - calibration.gyroBias[0];
-	gyro.gyroY = GyroCount[1] * (float)gRes - calibration.gyroBias[1];
-	gyro.gyroZ = GyroCount[2] * (float)gRes - calibration.gyroBias[2];
+	gx = GyroCount[0] * (float)gRes - calibration.gyroBias[0];
+	gy = GyroCount[1] * (float)gRes - calibration.gyroBias[1];
+	gz = GyroCount[2] * (float)gRes - calibration.gyroBias[2];
+
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = ax;		gyro.gyroZ = gx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;
+		break;
+	}
 
 	// Calculate the temperature value into actual deg c
 	temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;

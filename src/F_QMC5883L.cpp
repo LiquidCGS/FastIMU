@@ -45,12 +45,56 @@ void QMC5883L::update()
 	}
 
 	// Calculate the mag value
-	mag.magX = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
-	mag.magY = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
-	mag.magZ = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
+	float mx, my, mz;
+
+	mx = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
+	my = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
+	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
 	
 	readBytes(IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
 	temperature = (float)((((int16_t)rawData[1] << 8) | rawData[0]) * tRes) + 20.f;
+	switch (geometryIndex) {
+	case 0:
+		mag.magX = mx;
+		mag.magY = my;
+		mag.magZ = mz;
+		break;
+	case 1:
+		mag.magX = -my;
+		mag.magY = mx;
+		mag.magZ = mz;
+		break;
+	case 2:
+		mag.magX = mx;
+		mag.magY = my;
+		mag.magZ = mz;
+		break;
+	case 3:
+		mag.magX = my;
+		mag.magY = -mx;
+		mag.magZ = mz;
+		break;
+	case 4:
+		mag.magX = -mz;
+		mag.magY = -my;
+		mag.magZ = -mx;
+		break;
+	case 5:
+		mag.magX = -mz;
+		mag.magY = mx;
+		mag.magZ = -my;
+		break;
+	case 6:
+		mag.magX = -mz;
+		mag.magY = my;
+		mag.magZ = mx;
+		break;
+	case 7:
+		mag.magX = -mz;
+		mag.magY = -mx;
+		mag.magZ = my;
+		break;
+	}
 }
 
 void QMC5883L::getMag(MagData* out)

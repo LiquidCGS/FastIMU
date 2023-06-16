@@ -93,18 +93,63 @@ void MPU6050::update() {
 	IMUCount[5] = ((int16_t)rawData[10] << 8) | rawData[11];
 	IMUCount[6] = ((int16_t)rawData[12] << 8) | rawData[13];
 
+	float ax, ay, az, gx, gy, gz;
+
 	// Calculate the accel value into actual g's per second
-	accel.accelX = (float)IMUCount[0] * aRes - calibration.accelBias[0];
-	accel.accelY = (float)IMUCount[1] * aRes - calibration.accelBias[1];
-	accel.accelZ = (float)IMUCount[2] * aRes - calibration.accelBias[2];
+	ax = (float)IMUCount[0] * aRes - calibration.accelBias[0];
+	ay = (float)IMUCount[1] * aRes - calibration.accelBias[1];
+	az = (float)IMUCount[2] * aRes - calibration.accelBias[2];
 
 	// Calculate the temperature value into actual deg c
 	temperature = (((float)IMUCount[3] / 340.f) + 36.53f);
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroX = (float)IMUCount[4] * gRes - calibration.gyroBias[0];
-	gyro.gyroY = (float)IMUCount[5] * gRes - calibration.gyroBias[1];
-	gyro.gyroZ = (float)IMUCount[6] * gRes - calibration.gyroBias[2];
+	gx = (float)IMUCount[4] * gRes - calibration.gyroBias[0];
+	gy = (float)IMUCount[5] * gRes - calibration.gyroBias[1];
+	gz = (float)IMUCount[6] * gRes - calibration.gyroBias[2];
+
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = ax;		gyro.gyroZ = gx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;
+		break;
+	}
 }
 
 void MPU6050::getAccel(AccelData* out) 

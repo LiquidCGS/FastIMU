@@ -109,23 +109,66 @@ void BMX055::update()
 	MagCount[1] = ((rawDataMag[3] << 8) | (rawDataMag[2] & 0xF8)) >> 3;
 	MagCount[2] = ((rawDataMag[5] << 8) | (rawDataMag[4] & 0xFE)) >> 1;	      // Turn the MSB and LSB into a signed 15-bit value
 
+	float ax, ay, az, gx, gy, gz, mx, my, mz;
 	// Calculate the accel value into actual g's per second
-	accel.accelX = AccelCount[0] * aRes - calibration.accelBias[0];
-	accel.accelY = AccelCount[1] * aRes - calibration.accelBias[1];
-	accel.accelZ = AccelCount[2] * aRes - calibration.accelBias[2];
+	ax = AccelCount[0] * aRes - calibration.accelBias[0];
+	ay = AccelCount[1] * aRes - calibration.accelBias[1];
+	az = AccelCount[2] * aRes - calibration.accelBias[2];
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroX = GyroCount[0] * gRes - calibration.gyroBias[0];
-	gyro.gyroY = GyroCount[1] * gRes - calibration.gyroBias[1];
-	gyro.gyroZ = GyroCount[2] * gRes - calibration.gyroBias[2];
+	gx = GyroCount[0] * gRes - calibration.gyroBias[0];
+	gy = GyroCount[1] * gRes - calibration.gyroBias[1];
+	gz = GyroCount[2] * gRes - calibration.gyroBias[2];
 
 	// Calculate the mag value into actual uT per second
-	mag.magX = (float)(MagCount[0] * mResXY - calibration.magBias[0]) * calibration.magScale[0];
-	mag.magY = (float)(MagCount[1] * mResXY - calibration.magBias[1]) * calibration.magScale[1];
-	mag.magZ = (float)(MagCount[2] * mResZ  - calibration.magBias[2]) * calibration.magScale[2];
+	mx = (float)(MagCount[0] * mResXY - calibration.magBias[0]) * calibration.magScale[0];
+	my = (float)(MagCount[1] * mResXY - calibration.magBias[1]) * calibration.magScale[1];
+	mz = (float)(MagCount[2] * mResZ  - calibration.magBias[2]) * calibration.magScale[2];
 
 	// Calculate the temperature value into actual deg c
 	temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;		mag.magX = mx;
+		accel.accelY = ay;		gyro.gyroY = gy;		mag.magY = my;
+		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;		mag.magX = -my;
+		accel.accelY = ax;		gyro.gyroY = gx;		mag.magY = mx;
+		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;		mag.magX = mx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;		mag.magY = my;
+		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;		mag.magX = my;
+		accel.accelY = -ax;		gyro.gyroY = -gx;		mag.magY = -mx;
+		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;		mag.magY = -my;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;		mag.magZ = -mx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
+		accel.accelY = ax;		gyro.gyroY = gx;		mag.magY = mx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;		mag.magZ = -my;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
+		accel.accelY = ay;		gyro.gyroY = gy;		mag.magY = my;
+		accel.accelZ = ax;		gyro.gyroZ = gx;		mag.magZ = mx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;		mag.magY = -mx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;		mag.magZ = my;
+		break;
+	}
 }
 
 void BMX055::getAccel(AccelData* out) 

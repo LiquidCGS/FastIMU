@@ -126,18 +126,20 @@ void IMU_Generic::update() {
 	IMUCount[5] = ((int16_t)rawData[10] << 8) | rawData[11];
 	IMUCount[6] = ((int16_t)rawData[12] << 8) | rawData[13];
 
+	float ax, ay, az, gx, gy, gz;
+
 	// Calculate the accel value into actual g's per second
-	accel.accelX = (float)IMUCount[0] * aRes - calibration.accelBias[0];
-	accel.accelY = (float)IMUCount[1] * aRes - calibration.accelBias[1];
-	accel.accelZ = (float)IMUCount[2] * aRes - calibration.accelBias[2];
+	ax = (float)IMUCount[0] * aRes - calibration.accelBias[0];
+	ay = (float)IMUCount[1] * aRes - calibration.accelBias[1];
+	az = (float)IMUCount[2] * aRes - calibration.accelBias[2];
 
 	// Calculate the temperature value into actual deg c
 	temperature = (((float)IMUCount[3] - 21.0f) / 333.87f) + 21.0f;
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroX = (float)IMUCount[4] * gRes - calibration.gyroBias[0];
-	gyro.gyroY = (float)IMUCount[5] * gRes - calibration.gyroBias[1];
-	gyro.gyroZ = (float)IMUCount[6] * gRes - calibration.gyroBias[2];
+	gx = (float)IMUCount[4] * gRes - calibration.gyroBias[0];
+	gy = (float)IMUCount[5] * gRes - calibration.gyroBias[1];
+	gz = (float)IMUCount[6] * gRes - calibration.gyroBias[2];
 
 	//update mag
 	if (readByte(AK8963_ADDRESS, AK8963_ST1) & 0x01) {				 // wait for magnetometer data ready bit to be set
@@ -150,15 +152,101 @@ void IMU_Generic::update() {
 			magCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];   // Data stored as little Endian
 			magCount[2] = ((int16_t)rawData[5] << 8) | rawData[4];
 		}
-		
-		mag.magX = (float)(magCount[1] * mRes * factoryMagCal[1] - calibration.magBias[1]) * calibration.magScale[1];
-		mag.magY = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
-		mag.magZ = -(float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
 
+		float mx, my, mz;
+
+		mx = (float)(magCount[1] * mRes * factoryMagCal[1] - calibration.magBias[1]) * calibration.magScale[1];
+		my = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
+		mz = -(float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
+
+		switch (geometryIndex) {
+		case 0:
+			mag.magX = mx;
+			mag.magY = my;
+			mag.magZ = mz;
+			break;
+		case 1:
+			mag.magX = -my;
+			mag.magY = mx;
+			mag.magZ = mz;
+			break;
+		case 2:
+			mag.magX = mx;
+			mag.magY = my;
+			mag.magZ = mz;
+			break;
+		case 3:
+			mag.magX = my;
+			mag.magY = -mx;
+			mag.magZ = mz;
+			break;
+		case 4:
+			mag.magX = -mz;
+			mag.magY = -my;
+			mag.magZ = -mx;
+			break;
+		case 5:
+			mag.magX = -mz;
+			mag.magY = mx;
+			mag.magZ = -my;
+			break;
+		case 6:
+			mag.magX = -mz;
+			mag.magY = my;
+			mag.magZ = mx;
+			break;
+		case 7:
+			mag.magX = -mz;
+			mag.magY = -mx;
+			mag.magZ = my;
+			break;
+		}
 		//    // Apply mag soft iron error compensation
 		//    mx = x * calibration.mag_softiron_matrix[0][0] + y * calibration.mag_softiron_matrix[0][1] + z * calibration.mag_softiron_matrix[0][2];
 		//    my = x * calibration.mag_softiron_matrix[1][0] + y * calibration.mag_softiron_matrix[1][1] + z * calibration.mag_softiron_matrix[1][2];
 		//    mz = x * calibration.mag_softiron_matrix[2][0] + y * calibration.mag_softiron_matrix[2][1] + z * calibration.mag_softiron_matrix[2][2];
+	}
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = ax;		gyro.gyroZ = gx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;
+		break;
 	}
 }
 

@@ -42,6 +42,7 @@ public:
 
 	void calibrateAccelGyro(calData* cal) override {};
 	void calibrateMag(calData* cal) override;
+	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
 	bool hasMagnetometer() override {
 		return true;
@@ -67,6 +68,8 @@ private:
 	float mRes = 8.f / 32768.f;				//mRes value for full range (+-8 gauss) readings (16 bit)
 	float tRes = 100.f / 32768.f;				//mRes value for full range (+-8 gauss) readings (16 bit)
 	float temperature = 0.f;
+	int geometryIndex = 0;
+	
 	AccelData accel = { 0 };
 	GyroData gyro = { 0 };
 	MagData mag = { 0 };

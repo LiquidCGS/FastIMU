@@ -52,6 +52,7 @@ public:
 
 	virtual int setGyroRange(int range) = 0;
 	virtual int setAccelRange(int range) = 0;
+	virtual int setIMUGeometry(int index) = 0;
 
 	virtual void calibrateAccelGyro(calData* cal) = 0;
 	virtual void calibrateMag(calData* cal) = 0;

@@ -49,18 +49,63 @@ void LSM6DSL::update() {
 	IMUCount[4] = ((int16_t)rawData[11] << 8) | rawData[10];
 	IMUCount[5] = ((int16_t)rawData[13] << 8) | rawData[12];
 
+	float ax, ay, az, gx, gy, gz;
+
 	// Calculate the accel value into actual g's per second
-	accel.accelY = -((float)IMUCount[3] * aRes - calibration.accelBias[0]);
-	accel.accelX = -((float)IMUCount[4] * aRes - calibration.accelBias[1]);
-	accel.accelZ = ((float)IMUCount[5] * aRes - calibration.accelBias[2]);
+	ay = -((float)IMUCount[3] * aRes - calibration.accelBias[0]);
+	ax = -((float)IMUCount[4] * aRes - calibration.accelBias[1]);
+	az = ((float)IMUCount[5] * aRes - calibration.accelBias[2]);
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroY = ((float)IMUCount[0] * gRes - calibration.gyroBias[0]);
-	gyro.gyroX = ((float)IMUCount[1] * gRes - calibration.gyroBias[1]);
-	gyro.gyroZ = ((float)IMUCount[2] * gRes - calibration.gyroBias[2]);
+	gy = ((float)IMUCount[0] * gRes - calibration.gyroBias[0]);
+	gx = ((float)IMUCount[1] * gRes - calibration.gyroBias[1]);
+	gz = ((float)IMUCount[2] * gRes - calibration.gyroBias[2]);
 
 	float temp = ((((int16_t)rawData[1]) << 8) | rawData[0]);
 	temperature = (temp / 8) + 25.f;
+
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = ax;		gyro.gyroZ = gx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;
+		break;
+	}
 }
 
 void LSM6DSL::getAccel(AccelData* out)

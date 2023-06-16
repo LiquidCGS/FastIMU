@@ -54,15 +54,60 @@ void BMI160::update() {
 	IMUCount[4] = ((int16_t)rawData[9] << 8) | rawData[8];
 	IMUCount[5] = ((int16_t)rawData[11] << 8) | rawData[10];
 
+	float ax, ay, az, gx, gy, gz;
+
 	// Calculate the accel value into actual g's per second
-	accel.accelX = -((float)IMUCount[3] * aRes - calibration.accelBias[0]);
-	accel.accelY = -((float)IMUCount[4] * aRes - calibration.accelBias[1]);
-	accel.accelZ = (float)IMUCount[5] * aRes - calibration.accelBias[2];
+	ax = -((float)IMUCount[3] * aRes - calibration.accelBias[0]);
+	ay = -((float)IMUCount[4] * aRes - calibration.accelBias[1]);
+	az = (float)IMUCount[5] * aRes - calibration.accelBias[2];
 
 	// Calculate the gyro value into actual degrees per second
-	gyro.gyroX = -((float)IMUCount[0] * gRes - calibration.gyroBias[0]);
-	gyro.gyroY = -((float)IMUCount[1] * gRes - calibration.gyroBias[1]);
-	gyro.gyroZ = (float)IMUCount[2] * gRes - calibration.gyroBias[2];
+	gx = -((float)IMUCount[0] * gRes - calibration.gyroBias[0]);
+	gy = -((float)IMUCount[1] * gRes - calibration.gyroBias[1]);
+	gz = (float)IMUCount[2] * gRes - calibration.gyroBias[2];
+
+	switch (geometryIndex) {
+	case 0:
+		accel.accelX = ax;		gyro.gyroX = gx;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 1:
+		accel.accelX = -ay;		gyro.gyroX = -gy;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 2:
+		accel.accelX = -ax;		gyro.gyroX = -gx;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 3:
+		accel.accelX = ay;		gyro.gyroX = gy;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = az;		gyro.gyroZ = gz;
+		break;
+	case 4:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ay;		gyro.gyroY = -gy;
+		accel.accelZ = -ax;		gyro.gyroZ = -gx;
+		break;
+	case 5:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ax;		gyro.gyroY = gx;
+		accel.accelZ = -ay;		gyro.gyroZ = -gy;
+		break;
+	case 6:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = ay;		gyro.gyroY = gy;
+		accel.accelZ = ax;		gyro.gyroZ = gx;
+		break;
+	case 7:
+		accel.accelX = -az;		gyro.gyroX = -gz;
+		accel.accelY = -ax;		gyro.gyroY = -gx;
+		accel.accelZ = ay;		gyro.gyroZ = gy;
+		break;
+	}
 
 	uint8_t buf[2];
 	readBytes(IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
