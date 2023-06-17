@@ -251,7 +251,7 @@ void MPU6886::calibrateAccelGyro(calData* cal)
 
 	// Configure FIFO to capture accelerometer and gyro data for bias calculation
 	writeByte(IMUAddress, MPU6886_USER_CTRL, 0x40);   // Enable FIFO
-	writeByte(IMUAddress, MPU6886_FIFO_EN, 0x78);     // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in MPU-9150)
+	writeByte(IMUAddress, MPU6886_FIFO_EN, 0x18);     // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in MPU-9150)
 	delay(40); // accumulate 40 samples in 40 milliseconds = 480 bytes
 
 	// At end of sample accumulation, turn off FIFO sensor read
