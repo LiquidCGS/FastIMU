@@ -112,7 +112,7 @@ int MPU9250::initMagnetometer()
 }
 
 void MPU9250::update() {
-	if (!dataAvaliable()) return;
+	if (!dataAvailable()) return;
 
 	int16_t IMUCount[7];                                          // used to read all 14 bytes at once from the MPU9250 accel/gyro
 	uint8_t rawData[14];                                          // x/y/z accel register data stored here

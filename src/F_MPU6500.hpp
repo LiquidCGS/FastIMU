@@ -222,6 +222,6 @@ private:
 		}         // Put read results in the Rx buffer
 	}
 
-	bool dataAvaliable(){ return (readByte(IMUAddress, MPU6500_INT_STATUS) & 0x01);}
+	bool dataAvailable(){ return (readByte(IMUAddress, MPU6500_INT_STATUS) & 0x01);}
 };
 #endif /* _F_MPU6500_H_ */

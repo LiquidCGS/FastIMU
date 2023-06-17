@@ -111,7 +111,7 @@ int IMU_Generic::initMagnetometer()
 }
 
 void IMU_Generic::update() {
-	if (!dataAvaliable()) return;
+	if (!dataAvailable()) return;
 
 	int16_t IMUCount[7];                                          // used to read all 14 bytes at once from the IMU_Generic accel/gyro
 	uint8_t rawData[14];                                          // x/y/z accel register data stored here

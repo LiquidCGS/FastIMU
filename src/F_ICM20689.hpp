@@ -167,6 +167,6 @@ private:
 		}         // Put read results in the Rx buffer
 	}
 
-	bool dataAvaliable(){ return (readByte(IMUAddress, ICM20689_INT_STATUS) & 0x01);}
+	bool dataAvailable(){ return (readByte(IMUAddress, ICM20689_INT_STATUS) & 0x01);}
 };
 #endif /* _F_ICM20689_H_ */

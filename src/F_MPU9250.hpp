@@ -248,6 +248,6 @@ private:
 
 	float factoryMagCal[3] = { 0 };
 
-	bool dataAvaliable(){ return (readByte(IMUAddress, MPU9250_INT_STATUS) & 0x01);}
+	bool dataAvailable(){ return (readByte(IMUAddress, MPU9250_INT_STATUS) & 0x01);}
 };
 #endif /* _F_MPU9250_H_ */

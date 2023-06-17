@@ -82,7 +82,7 @@ int MPU6886::init(calData cal, uint8_t address)
 }
 
 void MPU6886::update() {
-	if (!dataAvaliable()) return;
+	if (!dataAvailable()) return;
 
 	int16_t IMUCount[7];                                          // used to read all 14 bytes at once from the MPU6886 accel/gyro
 	uint8_t rawData[14];                                          // x/y/z accel register data stored here
