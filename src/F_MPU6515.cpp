@@ -285,18 +285,41 @@ void MPU6515::calibrateAccelGyro(calData* cal)
 	gyro_bias[1] /= (int32_t)packet_count;
 	gyro_bias[2] /= (int32_t)packet_count;
 
-	if (accel_bias[2] > 0L) {
-		accel_bias[2] -= (int32_t)accelsensitivity; // Remove gravity from the z-axis accelerometer bias calculation
+	switch (geometryIndex) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+		if (accel_bias[2] > 0L) {
+			accel_bias[2] -= (int32_t)accelsensitivity; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[2] += (int32_t)accelsensitivity;
+		}
+		break;
+	case 4:
+	case 6:
+		if (accel_bias[0] > 0L) {
+			accel_bias[0] -= (int32_t)accelsensitivity; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[0] += (int32_t)accelsensitivity;
+		}
+		break;
+	case 5:
+	case 7:
+		if (accel_bias[1] > 0L) {
+			accel_bias[1] -= (int32_t)accelsensitivity; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[1] += (int32_t)accelsensitivity;
+		}
+		break;
 	}
-	else {
-		accel_bias[2] += (int32_t)accelsensitivity;
-	}
-
 	// Output scaled accelerometer biases for display in the main program
 	cal->accelBias[0] = (float)accel_bias[0] / (float)accelsensitivity;
 	cal->accelBias[1] = (float)accel_bias[1] / (float)accelsensitivity;
 	cal->accelBias[2] = (float)accel_bias[2] / (float)accelsensitivity;
-
 	// Output scaled gyro biases for display in the main program
 	cal->gyroBias[0] = (float)gyro_bias[0] / (float)gyrosensitivity;
 	cal->gyroBias[1] = (float)gyro_bias[1] / (float)gyrosensitivity;

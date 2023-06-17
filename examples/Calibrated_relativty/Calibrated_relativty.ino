@@ -6,7 +6,8 @@
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
-MPU6050 IMU;                 //Change to the name of any supported IMU!
+MPU6050 IMU;                //Change to the name of any supported IMU!
+#define IMU_GEOMTERY 0		//Change to your current IMU geomtery (check docs for a reference pic).
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6886 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL
 
@@ -55,6 +56,7 @@ void setup() {
   if (calStatus == 99) {
     EEPROM.get(200, calib);
   }
+  IMU.setIMUGeometry(IMU_GEOMTERY);
   int err = IMU.init(calib, IMU_ADDRESS);
   if (err != 0) {
     while(!Serial){
@@ -91,7 +93,7 @@ void loop() {
     if (Serial.read() == 'y') {
       calib = { 0 };                    //this looks important
       IMU.init(calib, IMU_ADDRESS);
-      Serial.println("Calibrating IMU... Lay IMU flat side down on a level surface...");
+      Serial.println("Calibrating IMU... Keep headset still on a flat and level surface...");
       delay(10000);
       IMU.calibrateAccelGyro(&calib);
       IMU.init(calib, IMU_ADDRESS);

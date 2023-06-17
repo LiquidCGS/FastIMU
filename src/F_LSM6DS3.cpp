@@ -217,20 +217,41 @@ void LSM6DS3::calibrateAccelGyro(calData* cal)
 	gyro_bias[1] /= packet_count;
 	gyro_bias[2] /= packet_count;
 
-	if (accel_bias[2] > 0.f)
-	{
-		accel_bias[2] -= 1.f; // Remove gravity from the z-axis accelerometer bias calculation
+	switch (geometryIndex) {
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+		if (accel_bias[2] > 0.f) {
+			accel_bias[2] -= 1.f; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[2] += 1.f;
+		}
+		break;
+	case 4:
+	case 6:
+		if (accel_bias[0] > 0.f) {
+			accel_bias[0] -= 1.f; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[0] += 1.f;
+		}
+		break;
+	case 5:
+	case 7:
+		if (accel_bias[1] > 0.f) {
+			accel_bias[1] -= 1.f; // Remove gravity from the z-axis accelerometer bias calculation
+		}
+		else {
+			accel_bias[1] += 1.f;
+		}
+		break;
 	}
-	else
-	{
-		accel_bias[2] += 1.f;
-	}
-
 	// Output scaled accelerometer biases for display in the main program
 	cal->accelBias[0] = (float)accel_bias[0];
 	cal->accelBias[1] = (float)accel_bias[1];
 	cal->accelBias[2] = (float)accel_bias[2];
-
 	// Output scaled gyro biases for display in the main program
 	cal->gyroBias[0] = (float)gyro_bias[0];
 	cal->gyroBias[1] = (float)gyro_bias[1];
