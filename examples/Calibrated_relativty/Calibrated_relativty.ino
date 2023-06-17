@@ -136,6 +136,7 @@ void loop() {
       EEPROM.put(200, calib);
       EEPROM.put(100, 99);
       delay(1000);
+	  Serial.println("Please remember to set hmdIMUdmpPackets to false in the driver settings.");
       Serial.println("You can now close the Serial monitor.");
       delay(5000);
     }
