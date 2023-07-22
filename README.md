@@ -16,6 +16,7 @@ Currently supported IMUS:
 * LSM6DS3 
 * LSM6DSL (currently untested)
 * QMC5883L
+* MPU6050 + QMC5883L (uses type MPU6050_QMC5883L, expects IMU address)
 
 ## Data types
 
