@@ -106,22 +106,19 @@ void QMC5883L::calibrateMag(calData* cal)
 {
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
-	int16_t mag_max[3] = { -32767, -32767, -32767 }, mag_min[3] = { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
+	int32_t mag_max[3] = { -2147483647, -2147483647, -2147483647 }, mag_min[3] = { 2147483647, 2147483647, 2147483647 }, mag_temp[3] = { 0, 0, 0 };
 
 	// shoot for ~fifteen seconds of mag data
-	sample_count = 3000;  // at 200 Hz ODR, new mag data is available every 10 ms
+	sample_count = 3000;  // at 200 Hz ODR, new mag data is available every 5 ms
 
 	for (ii = 0; ii < sample_count; ii++)
 	{
 		uint8_t rawData[6];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
 		if ((readByte(IMUAddress, QMC5883L_STATUS) & 0x01) && !(readByte(IMUAddress, QMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and overflow not to be.
 			readBytes(IMUAddress, QMC5883L_X_LSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
-			uint8_t c = rawData[6];	 // End data read by reading ST2 register
-			if (!(c & 0x08)) { // Check if magnetic sensor overflow set, if not then report data
-				mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value
-				mag_temp[1] = ((int16_t)rawData[3] << 8) | rawData[2];  // Data stored as little Endian
-				mag_temp[2] = ((int16_t)rawData[5] << 8) | rawData[4];
-			}
+			mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value
+			mag_temp[1] = ((int16_t)rawData[3] << 8) | rawData[2];  // Data stored as little Endian
+			mag_temp[2] = ((int16_t)rawData[5] << 8) | rawData[4];
 		}
 		for (int jj = 0; jj < 3; jj++)
 		{

@@ -365,24 +365,30 @@ void MPU6050_QMC5883L::calibrateAccelGyro(calData* cal)
 
 void MPU6050_QMC5883L::calibrateMag(calData* cal)
 {
+	// Reset sensor.
+	writeByte(0x0D, QMC5883L_RESET1, 0x80);
+	delay(100);
+	writeByte(0x0D, QMC5883L_RESET2, 0x01);
+	delay(100);
+	//start up sensor, 200hz ODR, 128 OSR, 8G, Continuous mode.
+	writeByte(0x0D, QMC5883L_CTRL, 0x1D);
+
+
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
 	int16_t mag_max[3] = { -32767, -32767, -32767 }, mag_min[3] = { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
-
+	
 	// shoot for ~fifteen seconds of mag data
 	sample_count = 3000;  // at 200 Hz ODR, new mag data is available every 10 ms
 
 	for (ii = 0; ii < sample_count; ii++)
 	{
-		uint8_t rawData[6];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
+		uint8_t rawMagData[6];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
 		if ((readByte(0x0D, QMC5883L_STATUS) & 0x01) && !(readByte(0x0D, QMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and overflow not to be.
-			readBytes(0x0D, QMC5883L_X_LSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
-			uint8_t c = rawData[6];	 // End data read by reading ST2 register
-			if (!(c & 0x08)) { // Check if magnetic sensor overflow set, if not then report data
-				mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value
-				mag_temp[1] = ((int16_t)rawData[3] << 8) | rawData[2];  // Data stored as little Endian
-				mag_temp[2] = ((int16_t)rawData[5] << 8) | rawData[4];
-			}
+			readBytes(0x0D, QMC5883L_X_LSB, 6, &rawMagData[0]);  // Read the six raw data and ST2 registers sequentially into data array
+			mag_temp[0] = ((int16_t)rawMagData[1] << 8) | rawMagData[0];  // Turn the MSB and LSB into a signed 16-bit value
+			mag_temp[1] = ((int16_t)rawMagData[3] << 8) | rawMagData[2];  // Data stored as little Endian
+			mag_temp[2] = ((int16_t)rawMagData[5] << 8) | rawMagData[4];
 		}
 		for (int jj = 0; jj < 3; jj++)
 		{
@@ -407,7 +413,7 @@ void MPU6050_QMC5883L::calibrateMag(calData* cal)
 	mag_scale[2] = (mag_max[2] - mag_min[2]) / 2; // get average z axis max chord length in counts
 
 	float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
-	avg_rad /= 3.0;
+	avg_rad /= 3.f;
 
 	cal->magScale[0] = avg_rad / ((float)mag_scale[0]);
 	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
