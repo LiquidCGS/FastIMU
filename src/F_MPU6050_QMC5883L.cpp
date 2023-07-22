@@ -127,21 +127,25 @@ void MPU6050_QMC5883L::update() {
 	//read mag
 	uint8_t rawMagData[6] = { 0 };
 	int16_t magCount[3] = { 0, 0, 0 };
+	float mx, my, mz;
 	if ((readByte(0x0D, QMC5883L_STATUS) & 0x01)) {
 		readBytes(0x0D, QMC5883L_X_LSB, 6, &rawMagData[0]);
 		if (!(readByte(0x0D, QMC5883L_STATUS) & 0x02)) {                                           // Check if magnetic sensor overflow set, if not then report data
 			magCount[0] = ((int16_t)rawMagData[1] << 8) | rawMagData[0];   // Turn the MSB and LSB into a signed 16-bit value
 			magCount[1] = ((int16_t)rawMagData[3] << 8) | rawMagData[2];   // Data stored as little Endian
 			magCount[2] = ((int16_t)rawMagData[5] << 8) | rawMagData[4];
+
+			// Calculate the mag value
+			my = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
+			mx = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
+			mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
 		}
 	}
-
-	// Calculate the mag value
-	float mx, my, mz;
-	my = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
-	mx = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
-	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
-
+	else {
+		my = 0.f;
+		mx = 0.f;
+		mz = 0.f;
+	}
 
 	switch (geometryIndex) {
 	case 0:

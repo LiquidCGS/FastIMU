@@ -32,6 +32,9 @@ int QMC5883L::init(calData cal, uint8_t address)
 void QMC5883L::update()
 {
 	if (!(readByte(IMUAddress, QMC5883L_STATUS) & 0x01)) {
+		mag.magX = 0.f;
+		mag.magY = 0.f;
+		mag.magZ = 0.f;
 		return;
 	}
 	uint8_t rawData[6] = { 0 };
@@ -46,7 +49,6 @@ void QMC5883L::update()
 
 	// Calculate the mag value
 	float mx, my, mz;
-
 	mx = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
 	my = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
 	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
@@ -106,7 +108,7 @@ void QMC5883L::calibrateMag(calData* cal)
 {
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };
-	int32_t mag_max[3] = { -2147483647, -2147483647, -2147483647 }, mag_min[3] = { 2147483647, 2147483647, 2147483647 }, mag_temp[3] = { 0, 0, 0 };
+	int16_t mag_max[3] = { -32767, -32767, -32767 }, mag_min[3] = { 32767, 32767, 32767 }, mag_temp[3] = { 0, 0, 0 };
 
 	// shoot for ~fifteen seconds of mag data
 	sample_count = 3000;  // at 200 Hz ODR, new mag data is available every 5 ms
