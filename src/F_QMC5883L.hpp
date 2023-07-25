@@ -42,8 +42,8 @@ public:
 
 	void calibrateAccelGyro(calData* cal) override {};
 	void calibrateMag(calData* cal) override;
-	int setGyroRange(int range) override {};
-	int setAccelRange(int range) override {};
+	int setGyroRange(int range) override { return -1; };
+	int setAccelRange(int range) override { return -1; };
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
 	bool hasMagnetometer() override {
