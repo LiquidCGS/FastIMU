@@ -121,11 +121,11 @@ void QMC5883L::calibrateMag(calData* cal)
 			mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value
 			mag_temp[1] = ((int16_t)rawData[3] << 8) | rawData[2];  // Data stored as little Endian
 			mag_temp[2] = ((int16_t)rawData[5] << 8) | rawData[4];
-		}
-		for (int jj = 0; jj < 3; jj++)
-		{
-			if (mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
-			if (mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+			for (int jj = 0; jj < 3; jj++)
+			{
+				if (mag_temp[jj] > mag_max[jj]) mag_max[jj] = mag_temp[jj];
+				if (mag_temp[jj] < mag_min[jj]) mag_min[jj] = mag_temp[jj];
+			}
 		}
 		delay(6); // at 200 Hz ODR, new mag data is available every 5 ms
 	}
