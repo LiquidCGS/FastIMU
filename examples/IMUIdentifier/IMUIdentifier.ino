@@ -7,7 +7,7 @@
 //This code will check for an IMU when reset and, if one is found, it will report what it is.
 //To re run the check without resetting the Arduino, pull pin 4 to GND.
 
-#define NUM_IMUS 37
+#define NUM_IMUS 39
 
 bool errorflag;
 
@@ -34,10 +34,12 @@ const IMU IMUList[NUM_IMUS] =
   {0x6B, 0x6A, 0x0F, 0x6A, "LSM6DSL",   "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x98, "ICM20689",  "3A,3G",    true},
   {0x68, 0x69, 0x75, 0x20, "ICM20690",  "3A,3G",    true},
+  {0x6B, 0x6A, 0x00, 0x05, "QMI8658",   "3A,3G",    true},
   {0x18, 0x19, 0x00, 0xFA, "BMI055 or BMX055", "3A,3G or 3A,3G,3M", true},
   {0x0D, 0x0D, 0x0D, 0xFF, "QMC5883L",   "3M",      true},
   {0x68, 0x69, 0x75, 0x75, "Unknown or fake IMU, proceed with caution, use 'IMU_Generic' as IMU type",   "3A,3G, possibly 3M?",    true},
   {0x6B, 0x6A, 0x0F, 0x6B, "LSM6DSR",   "3A,3G",    false},
+  {0x6B, 0x6A, 0x0F, 0x6C, "LSM6DSO",   "3A,3G",    false},
   {0x68, 0x69, 0x75, 0x92, "ICG20330",  "3G",       false},
   {0x68, 0x69, 0x75, 0xB5, "IAM20380",  "3A",       false},
   {0x68, 0x69, 0x75, 0xB6, "IAM20381",  "3G",       false},
