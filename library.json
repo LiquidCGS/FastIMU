@@ -14,7 +14,7 @@
             ".github/*",
 			".git/*",
 			"fast.png",
-            "keywords.txt",
+            "keywords.txt"
         ]
     },
     "frameworks": "arduino",
