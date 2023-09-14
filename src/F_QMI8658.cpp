@@ -21,6 +21,7 @@ int QMI8658::init(calData cal, uint8_t address)
 	}
 
 	// reset device
+	/*
 	writeByte(IMUAddress, BMI160_CMD, 0xB6);	    // Toggle softreset
 	delay(100);										// wait for reset
 	
@@ -38,14 +39,16 @@ int QMI8658::init(calData cal, uint8_t address)
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
 	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
+	*/
 	return 0;
 }
 
 void QMI8658::update() {
+	
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
-	readBytes(IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
+	//readBytes(IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -110,9 +113,10 @@ void QMI8658::update() {
 	}
 
 	uint8_t buf[2];
-	readBytes(IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
+	//readBytes(IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
 	float temp = ((((int16_t)buf[1]) << 8) | buf[0]);
 	temperature = (temp / 512) + 23.f;
+	
 }
 
 void QMI8658::getAccel(AccelData* out)
@@ -145,7 +149,7 @@ int QMI8658::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
+	//writeByte(IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
 	return 0;
 }
 
@@ -174,7 +178,7 @@ int QMI8658::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
+	//writeByte(IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
 	return 0;
 }
 
@@ -188,6 +192,7 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
+	/*
 	writeByte(IMUAddress, BMI160_CMD, 0xB6); // Toggle softreset
 	delay(100); // wait for reset
 
@@ -228,7 +233,7 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 
 		delay(20);
 	}
-
+	*/
 	accel_bias[0] /= packet_count; // Normalize sums to get average count biases
 	accel_bias[1] /= packet_count;
 	accel_bias[2] /= packet_count;
