@@ -18,6 +18,21 @@ Currently supported IMUS:
 * QMC5883L
 * MPU6050 + QMC5883L (uses type MPU6050_QMC5883L, expects IMU address)
 
+Planned:
+* QMI8658 (probably soonish)
+* BNO080 (probably soonish)
+* BMI160 + QMC5883L (maybe soonish)
+* MPU6500 + QMC5883L (maybe soonish)
+* MPU6515 + QMC5883L (maybe soonish)
+* GY-85 (ordered)
+* BMM150 (ordered)
+* BNO055 (ordered)
+* ICM20948 (ordered)
+* HMC5883L (ordered)
+* BMI160 + HMC5883L (When I get my hands on the HMC5883L)
+* MPU6500 + HMC5883L (When I get my hands on the HMC5883L)
+* MPU6515 + HMC5883L (When I get my hands on the HMC5883L)
+
 ## Data types
 
 * ```AccelData``` Contains all three axis of Accelerometer data, these are named ```accelX```, ```accelY``` and ```accelZ```
