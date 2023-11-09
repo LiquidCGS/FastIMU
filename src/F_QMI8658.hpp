@@ -110,6 +110,7 @@ private:
 	calData calibration;
 	uint8_t IMUAddress;
 
+	bool dataAvailable(){ return (readByte(IMUAddress, QMI8658_STATUS0) & 0x03);}
 
 	void writeByte(uint8_t address, uint8_t subAddress, uint8_t data)
 	{

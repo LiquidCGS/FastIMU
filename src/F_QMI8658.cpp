@@ -21,34 +21,33 @@ int QMI8658::init(calData cal, uint8_t address)
 	}
 
 	// reset device
-	/*
-	writeByte(IMUAddress, BMI160_CMD, 0xB6);	    // Toggle softreset
+	writeByte(IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
 	delay(100);										// wait for reset
 	
-	writeByte(IMUAddress, BMI160_CMD, 0x11);	    // Start up accelerometer
-	delay(100);								    	//wait until they're done starting up...
-	writeByte(IMUAddress, BMI160_CMD, 0x15);		// Start up gyroscope
-	delay(100);								    	//wait until they're done starting up...
+	writeByte(IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
+	
+	writeByte(IMUAddress, QMI8658_CTRL2, 0x34);  	// Set up full scale Accel range. +-16G, 500hz ODR
+	writeByte(IMUAddress, QMI8658_CTRL3, 0x74); 	 // Set up full scale Gyro range. +-2000dps, 500hz ODR
 
+	writeByte(IMUAddress, QMI8658_CTRL5, 0x55);  	// Enable LPF for both accel and gyro, set to 5.32% of odr for around 26.6hz
 
-	writeByte(IMUAddress, BMI160_ACC_RANGE, 0x0C);  // Set up full scale Accel range. +-16G
-	writeByte(IMUAddress, BMI160_GYR_RANGE, 0x00);  // Set up full scale Gyro range. +-2000dps
-
-	writeByte(IMUAddress, BMI160_ACC_CONF, 0x0A);  // Set Accel ODR to 400hz, BWP mode to Oversample 4, LPF of ~40.5hz
-	writeByte(IMUAddress, BMI160_GYR_CONF, 0x0A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 4, LPF of ~34.15hz
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	delay(100);								    	// wait until they're done starting up...
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
-	*/
+	gRes = 2048.f / 32768.f;	    //gres value for full range (2000dps) readings
+
 	return 0;
 }
 
 void QMI8658::update() {
 	
+	if(!dataAvailable()) {return;}
+	
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
-	//readBytes(IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
+	readBytes(IMUAddress, QMI8658_AX_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -60,14 +59,14 @@ void QMI8658::update() {
 	float ax, ay, az, gx, gy, gz;
 
 	// Calculate the accel value into actual g's per second
-	ax = -((float)IMUCount[3] * aRes - calibration.accelBias[0]);
-	ay = -((float)IMUCount[4] * aRes - calibration.accelBias[1]);
-	az = (float)IMUCount[5] * aRes - calibration.accelBias[2];
+	ax = (float)IMUCount[0] * aRes - calibration.accelBias[0];
+	ay = (float)IMUCount[1] * aRes - calibration.accelBias[1];
+	az = (float)IMUCount[2] * aRes - calibration.accelBias[2];
 
 	// Calculate the gyro value into actual degrees per second
-	gx = -((float)IMUCount[0] * gRes - calibration.gyroBias[0]);
-	gy = -((float)IMUCount[1] * gRes - calibration.gyroBias[1]);
-	gz = (float)IMUCount[2] * gRes - calibration.gyroBias[2];
+	gx = (float)IMUCount[3] * gRes - calibration.gyroBias[0];
+	gy = (float)IMUCount[4] * gRes - calibration.gyroBias[1];
+	gz = (float)IMUCount[5] * gRes - calibration.gyroBias[2];
 
 	switch (geometryIndex) {
 	case 0:
@@ -113,10 +112,8 @@ void QMI8658::update() {
 	}
 
 	uint8_t buf[2];
-	//readBytes(IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
-	float temp = ((((int16_t)buf[1]) << 8) | buf[0]);
-	temperature = (temp / 512) + 23.f;
-	
+	readBytes(IMUAddress, QMI8658_TEMP_L, 2, &buf[0]);
+	temperature = ((float)buf[1] + (float)buf[0] / 256);	
 }
 
 void QMI8658::getAccel(AccelData* out)
@@ -129,111 +126,111 @@ void QMI8658::getGyro(GyroData* out)
 }
 
 int QMI8658::setAccelRange(int range) {
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
 	uint8_t c;
 	if (range == 16) {
 		aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-		c = 0x0C;
+		c = 0x68;
 	}
 	else if (range == 8) {
 		aRes = 8.f / 32768.f;			//ares value for range (8g) readings
-		c = 0x08;
+		c = 0x48;
 	}
 	else if (range == 4) {
 		aRes = 4.f / 32768.f;			//ares value for range (4g) readings
-		c = 0x05;
+		c = 0x28;
 	}
 	else if (range == 2) {
 		aRes = 2.f / 32768.f;			//ares value for range (2g) readings
-		c = 0x03;
+		c = 0x08;
 	}
 	else {
 		return -1;
 	}
-	//writeByte(IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
+	writeByte(IMUAddress, QMI8658_CTRL2, c); 	// Write new ACCEL_CONFIG register value
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	return 0;
 }
 
 int QMI8658::setGyroRange(int range) {
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
 	uint8_t c;
-	if (range == 2000) {
-		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
-		c = 0x00;
+	if (range == 2048) {
+		gRes = 2048.f / 32768.f;			//gres value for full range (2000dps) readings
+		c = 0x74;
 	}
-	else if (range == 1000) {
-		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
-		c = 0x01;
+	else if (range == 1024) {
+		gRes = 1024.f / 32768.f;			//gres value for range (1000dps) readings
+		c = 0x64;
 	}
-	else if (range == 500) {
-		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
-		c = 0x02;
+	else if (range == 512) {
+		gRes = 512.f / 32768.f;			//gres value for range (500dps) readings
+		c = 0x54;
 	}
-	else if (range == 250){
-		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
-		c = 0x03;
+	else if (range == 256){
+		gRes = 256.f / 32768.f;			//gres value for range (250dps) readings
+		c = 0x44;
 	}
-	else if (range == 125){
-		gRes = 125.f / 32768.f;			//ares value for range (250dps) readings
-		c = 0x04;
+	else if (range == 128){
+		gRes = 128.f / 32768.f;			//gres value for range (250dps) readings
+		c = 0x34;
 	}
 	else {
 		return -1;
 	}
-	//writeByte(IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
+	writeByte(IMUAddress, QMI8658_CTRL3, c); 	// Write new ACCEL_CONFIG register value
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	return 0;
 }
 
 void QMI8658::calibrateAccelGyro(calData* cal)
 {
 	uint8_t data[12];
-	uint16_t packet_count = 64; // How many sets of full gyro and accelerometer data for averaging;
+	uint16_t packet_count = 100; // How many sets of full gyro and accelerometer data for averaging;
 	float gyro_bias[3] = { 0, 0, 0 }, accel_bias[3] = { 0, 0, 0 };
 
-	float  gyrosensitivity = 125.f / 32768.f;			
+	float  gyrosensitivity = 128.f / 32768.f;			
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
-	/*
-	writeByte(IMUAddress, BMI160_CMD, 0xB6); // Toggle softreset
-	delay(100); // wait for reset
-
-	writeByte(IMUAddress, BMI160_CMD, 0x11);  // Start up accelerometer
-	delay(200);
-	writeByte(IMUAddress, BMI160_CMD, 0x15);  // Start up gyroscope
-	delay(200);								  //wait until they're done starting up...
+	writeByte(IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
+	delay(100);										// wait for reset
 	
+	writeByte(IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
 
-	writeByte(IMUAddress, BMI160_ACC_RANGE, 0x03);  // Set up Accel range. +-2G
-	writeByte(IMUAddress, BMI160_GYR_RANGE, 0x04);  // Set up Gyro range. +-125dps
+	writeByte(IMUAddress, QMI8658_CTRL2, 0x04);  	// Set up full scale Accel range. +-2G, 500hz ODR
+	writeByte(IMUAddress, QMI8658_CTRL3, 0x34); 	 // Set up Gyro range. +-1024dps, 500hz ODR
 
-	writeByte(IMUAddress, BMI160_ACC_CONF, 0x2A);  // Set Accel ODR to 400hz, BWP mode to Oversample 1, LPF of ~162hz
-	writeByte(IMUAddress, BMI160_GYR_CONF, 0x2A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 1, LPF of ~136hz
+	writeByte(IMUAddress, QMI8658_CTRL5, 0x77);  	// Enable LPF for both accel and gyro, set to 14% of odr for around 70hz
+	
+	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	delay(100);								    	//wait until they're done starting up...
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytes(IMUAddress, BMI160_GYR_X_L, 12, &data[0]);    // Read the 12 raw data registers into data array
+		readBytes(IMUAddress, QMI8658_AX_L, 12, &data[0]);    // Read the 12 raw data registers into data array
 
-		gyro_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
-		gyro_temp[1] = ((int16_t)data[3] << 8) | data[2];
-		gyro_temp[2] = ((int16_t)data[5] << 8) | data[4];
+		accel_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
+		accel_temp[1] = ((int16_t)data[3] << 8) | data[2];
+		accel_temp[2] = ((int16_t)data[5] << 8) | data[4];
 
-		accel_temp[0] = ((int16_t)data[7] << 8) | data[6];
-		accel_temp[1] = ((int16_t)data[9] << 8) | data[8];
-		accel_temp[2] = ((int16_t)data[11] << 8) | data[10];
+		gyro_temp[0] = ((int16_t)data[7] << 8) | data[6];
+		gyro_temp[1] = ((int16_t)data[9] << 8) | data[8];
+		gyro_temp[2] = ((int16_t)data[11] << 8) | data[10];
 
 
 		accel_bias[0] += accel_temp[0] * accelsensitivity; // Sum individual signed 16-bit biases to get accumulated biases
 		accel_bias[1] += accel_temp[1] * accelsensitivity;
 		accel_bias[2] += accel_temp[2] * accelsensitivity;
-
+		
 		gyro_bias[0] += gyro_temp[0] * gyrosensitivity;
 		gyro_bias[1] += gyro_temp[1] * gyrosensitivity;
 		gyro_bias[2] += gyro_temp[2] * gyrosensitivity;
-
-		delay(20);
+		delay(4);
 	}
-	*/
+	
 	accel_bias[0] /= packet_count; // Normalize sums to get average count biases
 	accel_bias[1] /= packet_count;
 	accel_bias[2] /= packet_count;
