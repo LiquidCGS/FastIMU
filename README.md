@@ -16,10 +16,10 @@ Currently supported IMUS:
 * LSM6DS3 
 * LSM6DSL (currently untested)
 * QMC5883L
+* QMI8658
 * MPU6050 + QMC5883L (uses type MPU6050_QMC5883L, expects IMU address)
 
 Planned:
-* QMI8658 (probably soonish)
 * BNO080 (probably soonish)
 * BMI160 + QMC5883L (maybe soonish)
 * MPU6500 + QMC5883L (maybe soonish)
@@ -81,3 +81,4 @@ Planned:
 ![2](MountIndex.png)
 
 ##### TODO: get DMP working for pure quaternion output from invsense IMU's
+##### TODO: get FIFO working for all IMU's that have it.
