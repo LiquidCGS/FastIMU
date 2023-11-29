@@ -17,13 +17,19 @@ Currently supported IMUS:
 * LSM6DSL (currently untested)
 * QMC5883L
 * QMI8658
-* MPU6050 + QMC5883L (uses type MPU6050_QMC5883L, expects IMU address)
+
+Supported IMU + Mag Stacking combos (All of them expect IMU address for initialization):
+* MPU6515 + QMC5883L (uses type MPU6515_QMC5883L)
+* MPU6500 + QMC5883L (uses type MPU6500_QMC5883L)
+* MPU6050 + QMC5883L (uses type MPU6050_QMC5883L)
+* ICM20689 + QMC5883L (uses type ICM20689_QMC5883L)
+* BMI055 + QMC5883L (uses type BMI055_QMC5883Ls)
+* LSM6DS3 + QMC5883L (uses type LSM6DS3_QMC5883L)
+* LSM6DSL + QMC5883L (uses type LSM6DSL_QMC5883L)
+* QMI8658 + QMC5883L (uses type QMI8658_QMC5883L)
 
 Planned:
 * BNO080 (probably soonish)
-* BMI160 + QMC5883L (maybe soonish)
-* MPU6500 + QMC5883L (maybe soonish)
-* MPU6515 + QMC5883L (maybe soonish)
 * GY-85 (ordered)
 * BMM150 (ordered)
 * BNO055 (ordered)

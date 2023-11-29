@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef _F_MPU6050_QMC5883L_H_
-#define _F_MPU6050_QMC5883L_H_
+#ifndef _F_LSM6DSL_QMC5883L_H_
+#define _F_LSM6DSL_QMC5883L_H_
 
-#include "F_MPU6050.hpp"
+#include "F_LSM6DSL.hpp"
 #include "F_QMC5883L.hpp"
 
-class MPU6050_QMC5883L : public IMUBase {
+class LSM6DSL_QMC5883L : public IMUBase {
 public:
-	MPU6050_QMC5883L() {};
+	LSM6DSL_QMC5883L() {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {
@@ -56,20 +56,20 @@ public:
 	}
 
 	String IMUName() override {
-		return "MPU6050 + QMC5883L";
+		return "LSM6DSL + QMC5883L";
 	}
 	String IMUType() override {
-		return "MPU6050_QMC5883L";
+		return "LSM6DSL_QMC5883L";
 	}
 	String IMUManufacturer() override {
-		return "InvenSense + QST";
+		return "ST + QST";
 	}
 
 private:
-	MPU6050 IMU;
+	LSM6DSL IMU;
 	QMC5883L MAG;
 	
 	calData calibration;
 	uint8_t IMUAddress;
 };
-#endif /* _F_MPU6050_QMC5883L_H_ */
+#endif /* _F_LSM6DS3_QMC5883L_H_ */
