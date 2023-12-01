@@ -50,7 +50,7 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 float quat[4];
 
 #ifdef TinyUSB
-  Adafruit_USBD_HID TinyUSB_HID(_hidReportDescriptor, sizeof(_hidReportDescriptor), HID_ITF_PROTOCOL_NONE, 4, true);
+  Adafruit_USBD_HID TinyUSB_HID(_hidReportDescriptor, sizeof(_hidReportDescriptor), HID_ITF_PROTOCOL_NONE, 2, false);
 #endif
 
 void setup() {
