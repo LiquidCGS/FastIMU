@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/LiquidCGS/FastIMU.git"
     },
-    "version": "1.2.5",
+    "version": "1.2.6",
     "export": {
         "exclude": [
             "datasheets",
@@ -24,6 +24,7 @@
         "atmelmegaavr",
         "espressif32",
         "espressif8266",
-        "ststm32"
+        "ststm32",
+		"raspberrypi"
     ]
 }
