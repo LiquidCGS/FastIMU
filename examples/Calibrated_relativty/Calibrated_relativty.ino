@@ -12,7 +12,8 @@
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 MPU6050 IMU;                //Change to the name of any supported IMU!
-#define IMU_GEOMTERY 0		  //Change to your current IMU geomtery (check docs for a reference pic).
+
+#define IMU_GEOMETRY 0		  //Change to your current IMU geomtery (check docs for a reference pic).
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6886 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL QMI8658
 
@@ -72,7 +73,7 @@ void setup() {
   if (calStatus == 99) {
     EEPROM.get(200, calib);
   }
-  IMU.setIMUGeometry(IMU_GEOMTERY);
+  IMU.setIMUGeometry(IMU_GEOMETRY);
   int err = IMU.init(calib, IMU_ADDRESS);
   if (err != 0) {
     while(!Serial){

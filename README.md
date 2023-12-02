@@ -1,6 +1,6 @@
 # FastIMU
 ![1](fast.png)
-Currently supported IMUS: 
+Supported IMUS: 
 
 * MPU9255 
 * MPU9250 
@@ -15,15 +15,19 @@ Currently supported IMUS:
 * BMI160
 * LSM6DS3 
 * LSM6DSL (currently untested)
-* QMC5883L
 * QMI8658
+
+Supported Magnetometers:
+* QMC5883L
 
 Supported IMU + Mag Stacking combos (All of them expect IMU address for initialization):
 * MPU6515 + QMC5883L (uses type MPU6515_QMC5883L)
 * MPU6500 + QMC5883L (uses type MPU6500_QMC5883L)
 * MPU6050 + QMC5883L (uses type MPU6050_QMC5883L)
 * ICM20689 + QMC5883L (uses type ICM20689_QMC5883L)
+* ICM20690 + QMC5883L (uses type ICM20690_QMC5883L)
 * BMI055 + QMC5883L (uses type BMI055_QMC5883L)
+* BMI160 + QMC5883L (uses type BMI160_QMC5883L)
 * LSM6DS3 + QMC5883L (uses type LSM6DS3_QMC5883L)
 * LSM6DSL + QMC5883L (uses type LSM6DSL_QMC5883L)
 * QMI8658 + QMC5883L (uses type QMI8658_QMC5883L)
@@ -81,6 +85,13 @@ Planned:
 * ```hasTemperature``` Returns true if the IMU has a thermometer.
 
 * ```hasQuatOutput``` Returns true if the IMU has a direct quaternion output.
+
+* ```IMUName``` Returns a string containing the IMU's name.
+
+* ```IMUType``` Returns a string containing the IMU's type.
+
+* ```IMUManufacturer``` Returns a string containing the IMU's manufacturer.
+
 
 ## Supported IMU VR geometries (and their index numbers):
 
