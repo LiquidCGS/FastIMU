@@ -1,13 +1,19 @@
 #include "FastIMU.h"
 #include "Madgwick.h"
-#include "HID.h"
 #include "EEPROM.h"
 #include <Wire.h>
+#if defined(ARDUINO_ARCH_RP2040) // nRF52840 should also work, but has no EEPROM
+  #define TinyUSB
+  #include "Adafruit_TinyUSB.h"
+#else
+  #include "HID.h"
+#endif
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
 MPU6050 IMU;                //Change to the name of any supported IMU!
-#define IMU_GEOMETRY 0		//Change to your current IMU geometry (check docs for a reference pic).
+
+#define IMU_GEOMETRY 0		  //Change to your current IMU geomtery (check docs for a reference pic).
 
 // Currently supported IMUS: MPU9255 MPU9250 MPU6886 MPU6500 MPU6050 ICM20689 ICM20690 BMI055 BMX055 BMI160 LSM6DS3 LSM6DSL QMI8658
 
@@ -44,14 +50,25 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 };
 float quat[4];
 
+#ifdef TinyUSB
+  Adafruit_USBD_HID TinyUSB_HID(_hidReportDescriptor, sizeof(_hidReportDescriptor), HID_ITF_PROTOCOL_NONE, 2, false);
+#endif
+
 void setup() {
   Wire.begin();
   Wire.setClock(400000); //400khz clock
 
   int calStatus = 0;
   Serial.begin(9600);
-  static HIDSubDescriptor node (_hidReportDescriptor, sizeof(_hidReportDescriptor));
-  HID().AppendDescriptor(&node);
+
+  #ifdef TinyUSB
+      TinyUSB_HID.begin();
+      while( !TinyUSBDevice.mounted() ) delay(1);
+  #else
+      static HIDSubDescriptor node (_hidReportDescriptor, sizeof(_hidReportDescriptor));
+      HID().AppendDescriptor(&node);
+  #endif
+  
   EEPROM.get(100, calStatus);
   if (calStatus == 99) {
     EEPROM.get(200, calib);
@@ -169,5 +186,11 @@ void loop() {
   quat[2] = filter.getQuatZ();
   quat[3] = filter.getQuatX();
 
-  HID().SendReport(1, quat, 63);
+  #ifdef TinyUSB
+      void const * tmp;
+      tmp = quat; 
+      TinyUSB_HID.sendReport(1, tmp, 63);
+  #else
+      HID().SendReport(1, quat, 63);
+  #endif
 }
