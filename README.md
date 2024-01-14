@@ -32,6 +32,7 @@ Supported IMU + Mag Stacking combos (All of them expect IMU address for initiali
 * LSM6DS3 + QMC5883L (uses type LSM6DS3_QMC5883L)
 * LSM6DSL + QMC5883L (uses type LSM6DSL_QMC5883L)
 * QMI8658 + QMC5883L (uses type QMI8658_QMC5883L)
+
 * MPU6515 + HMC5883L (uses type MPU6515_HMC5883L)
 * MPU6500 + HMC5883L (uses type MPU6500_HMC5883L)
 * MPU6050 + HMC5883L (uses type MPU6050_HMC5883L)
@@ -44,13 +45,11 @@ Supported IMU + Mag Stacking combos (All of them expect IMU address for initiali
 * QMI8658 + HMC5883L (uses type QMI8658_HMC5883L)
 Planned:
 * BNO080 (probably soonish)
-* GY-85 (ordered)
-* BMM150 (ordered)
-* BNO055 (ordered)
-* ICM20948 (ordered)
-* BMI160 + HMC5883L (When I get my hands on the HMC5883L)
-* MPU6500 + HMC5883L (When I get my hands on the HMC5883L)
-* MPU6515 + HMC5883L (When I get my hands on the HMC5883L)
+* GY-85
+* BMM150 
+* BNO055 
+* ICM20948 
+* BMI270 (if I can get my hands on one)
 
 ## Data types
 
