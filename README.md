@@ -19,6 +19,7 @@ Supported IMUS:
 
 Supported Magnetometers:
 * QMC5883L
+* HMC5883L
 
 Supported IMU + Mag Stacking combos (All of them expect IMU address for initialization):
 * MPU6515 + QMC5883L (uses type MPU6515_QMC5883L)
@@ -31,14 +32,22 @@ Supported IMU + Mag Stacking combos (All of them expect IMU address for initiali
 * LSM6DS3 + QMC5883L (uses type LSM6DS3_QMC5883L)
 * LSM6DSL + QMC5883L (uses type LSM6DSL_QMC5883L)
 * QMI8658 + QMC5883L (uses type QMI8658_QMC5883L)
-
+* MPU6515 + HMC5883L (uses type MPU6515_HMC5883L)
+* MPU6500 + HMC5883L (uses type MPU6500_HMC5883L)
+* MPU6050 + HMC5883L (uses type MPU6050_HMC5883L)
+* ICM20689 + HMC5883L (uses type ICM20689_HMC5883L)
+* ICM20690 + HMC5883L (uses type ICM20690_HMC5883L)
+* BMI055 + HMC5883L (uses type BMI055_HMC5883L)
+* BMI160 + HMC5883L (uses type BMI160_HMC5883L)
+* LSM6DS3 + HMC5883L (uses type LSM6DS3_HMC5883L)
+* LSM6DSL + HMC5883L (uses type LSM6DSL_HMC5883L)
+* QMI8658 + HMC5883L (uses type QMI8658_HMC5883L)
 Planned:
 * BNO080 (probably soonish)
 * GY-85 (ordered)
 * BMM150 (ordered)
 * BNO055 (ordered)
 * ICM20948 (ordered)
-* HMC5883L (ordered)
 * BMI160 + HMC5883L (When I get my hands on the HMC5883L)
 * MPU6500 + HMC5883L (When I get my hands on the HMC5883L)
 * MPU6515 + HMC5883L (When I get my hands on the HMC5883L)

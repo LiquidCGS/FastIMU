@@ -16,8 +16,10 @@
 #include "F_LSM6DS3.hpp"
 #include "F_LSM6DSL.hpp"
 #include "F_QMC5883L.hpp"
+#include "F_HMC5883L.hpp"
 #include "F_QMI8658.hpp"
 #include "F_IMU_Generic.hpp"
+
 #include "F_BMI160_QMC5883L.hpp"
 #include "F_BMI055_QMC5883L.hpp"
 #include "F_ICM20689_QMC5883L.hpp"
@@ -29,5 +31,17 @@
 #include "F_MPU6500_QMC5883L.hpp"
 #include "F_MPU6515_QMC5883L.hpp"
 #include "F_QMI8658_QMC5883L.hpp"
+
+#include "F_BMI160_HMC5883L.hpp"
+#include "F_BMI055_HMC5883L.hpp"
+#include "F_ICM20689_HMC5883L.hpp"
+#include "F_ICM20690_HMC5883L.hpp"
+#include "F_IMU_Generic_HMC5883L.hpp"
+#include "F_LSM6DS3_HMC5883L.hpp"
+#include "F_LSM6DSL_HMC5883L.hpp"
+#include "F_MPU6050_HMC5883L.hpp"
+#include "F_MPU6500_HMC5883L.hpp"
+#include "F_MPU6515_HMC5883L.hpp"
+#include "F_QMI8658_HMC5883L.hpp"
 
 #endif /* _FastIMU_H_ */

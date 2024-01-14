@@ -117,5 +117,8 @@ void loop() {
 	  Serial.print("\t");
 	  Serial.println(IMU.getTemp());
   }
+  else {
+    Serial.println();
+  }
   delay(50);
 }
