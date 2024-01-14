@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	float mRes = 8.1f / 2048.f;				//mRes value for full range (+-8.1 gauss) readings (12 bit)
+	float mRes = 10. * 819.2f / 2048.f;				//mRes value for full range (+-819.2uT scaled * 10) readings (12 bit)
 	int geometryIndex = 0;
 	MagData mag = { 0 };
 
