@@ -49,9 +49,9 @@ void QMC5883L::update()
 
 	// Calculate the mag value
 	float mx, my, mz;
-	mx = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]) * 100.f;
-	my = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]) * 100.f;  // get actual magnetometer value, this depends on scale being set
-	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]) * 100.f;  //mul by 100 to convert from G to µT
+	mx = ((float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0]);
+	my = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]);  // get actual magnetometer value, this depends on scale being set
+	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]);  //mul by 100 to convert from G to µT
 	
 	readBytes(IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
 	temperature = (float)((((int16_t)rawData[1] << 8) | rawData[0]) * tRes) + 20.f;

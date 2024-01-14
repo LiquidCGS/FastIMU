@@ -67,8 +67,8 @@ public:
 	}
 
 private:
-	float mRes = 80.f / 32768.f;				//mRes value for full range (+-8 gauss) readings (16 bit)
-	float tRes = 100.f / 32768.f;			//mRes value for full range (+-8 gauss) readings (16 bit)
+	float mRes = 10. * 819.2f / 32768.f;				//mRes value for full range (+-819.2 uT scaled * 10) readings (16 bit)
+	float tRes = 100.f / 32768.f;			//tRes value for full range readings (16 bit)
 	float temperature = 0.f;
 	int geometryIndex = 0;
 	
