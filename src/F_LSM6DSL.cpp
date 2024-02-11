@@ -16,7 +16,7 @@ int LSM6DSL::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (!(readByte(IMUAddress, LSM6DSL_WHO_AM_I) == LSM6DSL_WHOAMI_DEFAULT_VALUE)) {
+	if (!(readByte(IMUAddress, LSM6DSL_WHO_AM_I) == LSM6DSL_WHOAMI_DEFAULT_VALUE_A) && !(readByte(IMUAddress, LSM6DSL_WHO_AM_I) == LSM6DSL_WHOAMI_DEFAULT_VALUE_B)) {
 		return -1;
 	}
 
