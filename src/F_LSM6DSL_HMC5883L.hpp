@@ -16,6 +16,7 @@ public:
 		if (e) { return e; }
 		e = MAG.init(cal, 0x1E);
 		if (e) { return -2; }
+		return 0;
 	}
 
 	void update() override {
