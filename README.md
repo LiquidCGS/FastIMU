@@ -20,6 +20,7 @@ Supported IMUS:
 Supported Magnetometers:
 * QMC5883L
 * HMC5883L
+* AK8975
 
 Supported IMU + Mag Stacking combos (All of them expect IMU address for initialization):
 * MPU6515 + QMC5883L (uses type MPU6515_QMC5883L)
@@ -43,11 +44,23 @@ Supported IMU + Mag Stacking combos (All of them expect IMU address for initiali
 * LSM6DS3 + HMC5883L (uses type LSM6DS3_HMC5883L)
 * LSM6DSL + HMC5883L (uses type LSM6DSL_HMC5883L)
 * QMI8658 + HMC5883L (uses type QMI8658_HMC5883L)
+
+* MPU6515 + AK8975 (uses type MPU6515_AK8975)
+* MPU6500 + AK8975 (uses type MPU6500_AK8975)
+* MPU6050 + AK8975 (uses type MPU6050_AK8975)
+* ICM20689 + AK8975 (uses type ICM20689_AK8975)
+* ICM20690 + AK8975 (uses type ICM20690_AK8975)
+* BMI055 + AK8975 (uses type BMI055_AK8975)
+* BMI160 + AK8975 (uses type BMI160_AK8975)
+* LSM6DS3 + AK8975 (uses type LSM6DS3_AK8975)
+* LSM6DSL + AK8975 (uses type LSM6DSL_AK8975)
+* QMI8658 + AK8975 (uses type QMI8658_AK8975)
+
 Planned:
 * BNO080 (probably soonish)
 * GY-85
 * BMM150 
-* BNO055 
+* BNO055 (the one I bought is DOA... might take a bit)
 * ICM20948 
 * BMI270 (if I can get my hands on one)
 
@@ -107,3 +120,5 @@ Planned:
 
 ##### TODO: get DMP working for pure quaternion output from invsense IMU's
 ##### TODO: get FIFO working for all IMU's that have it.
+##### TODO: get timestamping working 
+##### TODO: get proper matrix magnetometer calibration working instead of the current scalar garbage.
