@@ -4,31 +4,12 @@
 #define _F_MPU9250_H_
 
 #include "IMUBase.hpp"
+#include "F_AK8963.hpp"
 /*
 
 	MPU9250 REGISTERS
 
 */
-
-//Magnetometer Registers
-#define AK8963_ADDRESS   0x0C
-#define AK8963_WHO_AM_I  0x00 // should return 0x48
-#define AK8963_WHOAMI_DEFAULT_VALUE 0x48
-#define AK8963_INFO      0x01
-#define AK8963_ST1       0x02  // data ready status bit 0
-#define AK8963_XOUT_L	 0x03  // data
-#define AK8963_XOUT_H	 0x04
-#define AK8963_YOUT_L	 0x05
-#define AK8963_YOUT_H	 0x06
-#define AK8963_ZOUT_L	 0x07
-#define AK8963_ZOUT_H	 0x08
-#define AK8963_ST2       0x09  // Data overflow bit 3 and data read error status bit 2
-#define AK8963_CNTL      0x0A  // Power down (0000), single-measurement (0001), self-test (1000) and Fuse ROM (1111) modes on bits 3:0
-#define AK8963_ASTC      0x0C  // Self test control
-#define AK8963_I2CDIS    0x0F  // I2C disable
-#define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
-#define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
-#define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
 
 #define MPU9250_SELF_TEST_X_GYRO 0x00
 #define MPU9250_SELF_TEST_Y_GYRO 0x01
@@ -165,7 +146,6 @@ public:
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override;
-	int initMagnetometer();
 
 	void update() override;
 	void getAccel(AccelData* out) override;
@@ -176,13 +156,18 @@ public:
 
 	int setGyroRange(int range) override;
 	int setAccelRange(int range) override;
-	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
+	int setIMUGeometry(int index) override 
+	{ 
+		mag.setIMUGeometry(index);
+		geometryIndex = index;
+		return 0; 
+	};
 
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 
 	bool hasMagnetometer() override {
-		return true;
+		return mag.hasMagnetometer();
 	}
 	bool hasTemperature() override {
 		return true;
@@ -203,13 +188,13 @@ public:
 private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
-	float mRes = 10. * 4912. / 32760.0;		//mres value for full range (4912uT) readings
 
 	int geometryIndex = 0;
 	float temperature = 0.f;
 	AccelData accel = { 0 };
 	GyroData gyro = { 0 };
-	MagData mag = { 0 };
+
+	AK8963 mag;
 
 	calData calibration;
 	uint8_t IMUAddress;

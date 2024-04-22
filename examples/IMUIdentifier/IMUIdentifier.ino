@@ -7,7 +7,7 @@
 //This code will check for an IMU when reset and, if one is found, it will report what it is.
 //To re run the check without resetting the Arduino, pull pin 4 to GND.
 
-#define NUM_IMUS 43
+#define NUM_IMUS 47
 
 bool errorflag;
 
@@ -40,6 +40,10 @@ const IMU IMUList[NUM_IMUS] =
   {0x18, 0x19, 0x00, 0xFA, "BMI055 or BMX055", "3A,3G or 3A,3G,3M", true},
   {0x1E, 0x1E, 0x0C, 0x33, "HMC5883L",   "3M",		true},
   {0x0D, 0x0D, 0x0D, 0xFF, "QMC5883L",  "3M",		true},
+  {0x0C, 0x0D, 0x01, 0x09, "AK8975",  "3M",    false},
+  {0x0E, 0x0F, 0x01, 0x09, "AK8975",  "3M",    false},
+  {0x0C, 0x0D, 0x01, 0x9A, "AK8963",  "3M",    true},
+  {0x0E, 0x0F, 0x01, 0x9A, "AK8963",  "3M",    true},
   {0x13, 0x10, 0x40, 0x32, "BMM150",    "3M",  		false},
   {0x12, 0x11, 0x40, 0x32, "BMM150",    "3M",  		false},
   {0x6B, 0x6A, 0x0F, 0x6B, "LSM6DSR",   "3A,3G",	false},
@@ -83,7 +87,9 @@ void setup() {
   writeByte(0x11, 0x4B, 0x01);
   writeByte(0x12, 0x4B, 0x01);
   writeByte(0x13, 0x4B, 0x01);
-  //
+  //enable Magnetometer bypass on invsense IMUs
+  writeByte(0x68, 0x37, 0x22);
+  writeByte(0x69, 0x37, 0x22);
   
   Serial.println(F("\n=========== IMU Identifier ==========="));
 }

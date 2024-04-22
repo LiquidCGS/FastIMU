@@ -18,6 +18,7 @@
 #include "F_QMC5883L.hpp"
 #include "F_HMC5883L.hpp"
 #include "F_QMI8658.hpp"
+#include "F_AK8963.hpp"
 #include "F_IMU_Generic.hpp"
 
 #include "F_BMI160_QMC5883L.hpp"
