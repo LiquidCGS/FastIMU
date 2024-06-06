@@ -50,7 +50,11 @@ BLECharacteristic* inputReport;
 float quat[4];
 
 void setup() {
+  #if defined(ARDUINO_ARCH_ESP32)
+    Wire.begin(21, 22);
+    #else
     Wire.begin(35, 36);
+  #endif
     Wire.setClock(400000); // 400kHz clock
 
     int calStatus = 0;
