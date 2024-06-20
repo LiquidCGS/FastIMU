@@ -35,14 +35,6 @@
 #define AK09918_DOR_BIT     0x02    // Data Over Run
 #define AK09918_DRDY_BIT    0x01    // Data Ready
 
-#define AK09918_POWER_DOWN  0x00
-#define AK09918_NORMAL  0x01
-#define AK09918_CONTINUOUS_10HZ  0x02
-#define AK09918_CONTINUOUS_20HZ  0x04
-#define AK09918_CONTINUOUS_50HZ  0x06
-#define AK09918_CONTINUOUS_100HZ  0x08
-#define AK09918_SELF_TEST  0x10 // ignored by switchMode() and initialize(), call selfTest() to use this mode
-
 enum AK09918_mode_type_t {
     AK09918_POWER_DOWN = 0x00,
     AK09918_NORMAL = 0x01,
@@ -62,9 +54,7 @@ enum AK09918_err_type_t {
     AK09918_ERR_OVERFLOW = 5,           // sensor overflow, means |x|+|y|+|z| >= 4912uT
     AK09918_ERR_WRITE_FAILED = 6,       // fail to write
     AK09918_ERR_READ_FAILED = 7,        // fail to read
-
 };
-
 
 class AK09918 : public IMUBase {
 public:
@@ -86,6 +76,9 @@ public:
 
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
+
+	bool isDataReady();
+	bool isDataSkip();
 
 	bool hasMagnetometer() override {
 		return true;

@@ -5,8 +5,8 @@ int AK09918::init(calData cal, uint8_t address)
 {
 	uint8_t wai[2];
 	// Check wai for correct device
-	readBytes(AK09918_ADDRESS, AK09918_WIA1, 2, wia)
-	if (!(dest[0] == 0x48 && dest[1] == 0x0C)) {
+	readBytes(AK09918_ADDRESS, AK09918_WIA1, 2, wai);
+	if (!(wai[0] == 0x48 && wai[1] == 0x0C)) {
         return -1; // Failure
     }
 
@@ -91,8 +91,8 @@ void AK09918::update() {
 }
 
 bool AK09918::isDataReady() {
-	uint8_t res;
-    if (!readByte(AK09918_ADDRESS, AK09918_ST1, res)) {
+	uint8_t res = readByte(AK09918_ADDRESS, AK09918_ST1);
+    if (res & AK09918_ERR_OK) {
         return true;
     } else {
         if (res & AK09918_DRDY_BIT) {
@@ -104,8 +104,8 @@ bool AK09918::isDataReady() {
 }
 
 bool AK09918::isDataSkip() {
-	uint8_t res;
-    if (!readByte(AK09918_ADDRESS, AK09918_ST1, res)) {
+	uint8_t res = readByte(AK09918_ADDRESS, AK09918_ST1);
+    if (res & AK09918_ERR_OK) {
         return true;
     } else {
         if (res & AK09918_DOR_BIT) {
