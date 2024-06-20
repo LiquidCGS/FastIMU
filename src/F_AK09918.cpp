@@ -3,6 +3,18 @@
 
 int AK09918::init(calData cal, uint8_t address) 
 {
+	if (cal.valid == false) 
+	{
+		calibration = { 0 };
+		calibration.magScale[0] = 1.f;
+		calibration.magScale[1] = 1.f;
+		calibration.magScale[2] = 1.f;
+	}
+	else
+	{
+		calibration = cal;
+	}
+
 	uint8_t wai[2];
 	// Check wai for correct device
 	readBytes(AK09918_ADDRESS, AK09918_WIA1, 2, wai);
@@ -31,9 +43,9 @@ void AK09918::update() {
 		
 		float mx, my, mz;
 
-		mx = (float)(magCount[1] - calibration.magBias[1]) * calibration.magScale[1];
-		my = (float)(magCount[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
-		mz = -(float)(magCount[2] - calibration.magBias[2]) * calibration.magScale[2];
+		mx = (float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
+		my = (float)(magCount[0] * mRes - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
+		mz = -(float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2];
 
 		switch (geometryIndex) {
 		case 0:
@@ -88,32 +100,6 @@ void AK09918::update() {
 	//    mx = x * calibration.mag_softiron_matrix[0][0] + y * calibration.mag_softiron_matrix[0][1] + z * calibration.mag_softiron_matrix[0][2];
 	//    my = x * calibration.mag_softiron_matrix[1][0] + y * calibration.mag_softiron_matrix[1][1] + z * calibration.mag_softiron_matrix[1][2];
 	//    mz = x * calibration.mag_softiron_matrix[2][0] + y * calibration.mag_softiron_matrix[2][1] + z * calibration.mag_softiron_matrix[2][2];
-}
-
-bool AK09918::isDataReady() {
-	uint8_t res = readByte(AK09918_ADDRESS, AK09918_ST1);
-    if (res & AK09918_ERR_OK) {
-        return true;
-    } else {
-        if (res & AK09918_DRDY_BIT) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-}
-
-bool AK09918::isDataSkip() {
-	uint8_t res = readByte(AK09918_ADDRESS, AK09918_ST1);
-    if (res & AK09918_ERR_OK) {
-        return true;
-    } else {
-        if (res & AK09918_DOR_BIT) {
-            return AK09918_ERR_DOR;
-        } else {
-            return false;
-        }
-    }
 }
 
 void AK09918::getAccel(AccelData* out) 
@@ -177,9 +163,9 @@ void AK09918::calibrateMag(calData* cal)
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2; // get average y mag bias in counts
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2; // get average z mag bias in counts
 
-	cal->magBias[0] = (float)mag_bias[0]; // save mag biases in G for main program
-	cal->magBias[1] = (float)mag_bias[1];
-	cal->magBias[2] = (float)mag_bias[2];
+	cal->magBias[0] = (float)mag_bias[0] * mRes; // save mag biases in G for main program
+	cal->magBias[1] = (float)mag_bias[1] * mRes;
+	cal->magBias[2] = (float)mag_bias[2] * mRes;
 
 	// Get soft iron correction estimate
 	mag_scale[0] = (mag_max[0] - mag_min[0]) / 2; // get average x axis max chord length in counts

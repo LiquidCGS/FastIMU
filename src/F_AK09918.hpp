@@ -104,6 +104,8 @@ private:
 	float temperature = 0.f;
 	MagData mag = { 0 };
 
+	float mRes = 10. * 4912. / 32760.0;		//mres value for full range (4912uT) readings
+
 	calData calibration;
 	uint8_t IMUAddress;
 
