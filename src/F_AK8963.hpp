@@ -76,7 +76,7 @@ private:
 
 	int geometryIndex = 0;
 	float temperature = 0.f;
-	MagData mag = { 0 };
+	MagData mag = { 0, 0, 0 };
 
 	calData calibration;
 	uint8_t IMUAddress;
@@ -113,7 +113,7 @@ private:
 		}         // Put read results in the Rx buffer
 	}
 
-	float factoryMagCal[3] = { 0 };
+	float factoryMagCal[3] = { 0, 0, 0 };
 
 	bool dataAvailable(){ return (readByte(AK8963_ADDRESS, AK8963_ST1) & 0x01);}
 };
