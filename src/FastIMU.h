@@ -20,6 +20,7 @@
 #include "F_QMI8658.hpp"
 #include "F_AK8963.hpp"
 #include "F_AK8975.hpp"
+#include "F_AK09918.hpp"
 #include "F_IMU_Generic.hpp"
 
 //QMC5883L
@@ -61,5 +62,7 @@
 #include "F_MPU6515_AK8975.hpp"
 #include "F_QMI8658_AK8975.hpp"
 
+//AK09918
+#include "F_QMI8658_AK09918.hpp"
 
 #endif /* _FastIMU_H_ */
