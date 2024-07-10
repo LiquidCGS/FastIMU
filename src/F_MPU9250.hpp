@@ -191,8 +191,8 @@ private:
 
 	int geometryIndex = 0;
 	float temperature = 0.f;
-	AccelData accel = { 0 };
-	GyroData gyro = { 0 };
+	AccelData accel = { 0, 0, 0 };
+	GyroData gyro = { 0, 0, 0 };
 
 	AK8963 mag;
 
@@ -231,7 +231,7 @@ private:
 		}         // Put read results in the Rx buffer
 	}
 
-	float factoryMagCal[3] = { 0 };
+	float factoryMagCal[3] = { 0, 0, 0 };
 
 	bool dataAvailable(){ return (readByte(IMUAddress, MPU9250_INT_STATUS) & 0x01);}
 };
