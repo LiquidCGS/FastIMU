@@ -16,14 +16,15 @@ int LSM6DSL::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 	
-	uint8_t IMUWhoAmI = readByte(IMUAddress, LSM6DSL_WHO_AM_I);
+	// Wait up to 100ms for IMU to become ready.
+	uint8_t IMUWhoAmI = checkReady(IMUAddress, 500);
 	if (!(IMUWhoAmI == LSM6DSL_WHOAMI_DEFAULT_VALUE_A) && !(IMUWhoAmI == LSM6DSL_WHOAMI_DEFAULT_VALUE_B)) {
 		return -1;
 	}
 
 	// reset device
 	writeByte(IMUAddress, LSM6DSL_CTRL3_C, 0x01);   // Toggle softreset
-	delay(100);										// wait for reset
+	while (!checkReady(IMUAddress, 100));			// wait for reset
 	
 	writeByte(IMUAddress, LSM6DSL_CTRL1_XL, 0x47);	// Start up accelerometer, set range to +-16g, set output data rate to 104hz, BW_XL bits to 11.
 	writeByte(IMUAddress, LSM6DSL_CTRL2_G, 0x4C);	// Start up gyroscope, set range to -+2000dps, output data rate to 104hz.
