@@ -136,5 +136,17 @@ private:
 			dest[i++] = Wire.read();
 		}         // Put read results in the Rx buffer
 	}
+
+	uint8_t checkReady(uint8_t address, uint8_t timeout)
+	{
+		uint8_t IMUWhoAmI = 0;
+		// Wait until a valid byte is returned, up until timeout value.
+		for (uint8_t checkCount = timeout; checkCount > 0; checkCount--) {
+			IMUWhoAmI = readByte(address, LSM6DSL_WHO_AM_I);
+			if (IMUWhoAmI == 0xFF) { delay(1); } else { break; }
+		}
+		// Return IMU identifier if found.
+		return IMUWhoAmI;
+	}
 };
 #endif /* _F_LSM6DSL_H_ */
