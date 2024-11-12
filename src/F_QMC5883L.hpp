@@ -72,9 +72,9 @@ private:
 	float temperature = 0.f;
 	int geometryIndex = 0;
 	
-	AccelData accel = { 0 };
-	GyroData gyro = { 0 };
-	MagData mag = { 0 };
+	AccelData accel = { 0, 0, 0 };
+	GyroData gyro = { 0, 0, 0 };
+	MagData mag = { 0, 0, 0 };
 
 	calData calibration;
 	uint8_t IMUAddress;
