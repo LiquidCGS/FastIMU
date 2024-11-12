@@ -13,7 +13,7 @@ Supported IMUS:
 * BMI055 
 * BMX055 (Magnetometer currently untested)
 * BMI160
-* LSM6DS3 
+* LSM6DS3 (And some of it's variants)
 * LSM6DSL (currently untested)
 * QMI8658
 
