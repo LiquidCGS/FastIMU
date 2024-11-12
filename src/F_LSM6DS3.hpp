@@ -51,6 +51,7 @@
 #define LSM6DS3_OUTZ_H_XL			0x2D
 
 #define LSM6DS3_WHOAMI_DEFAULT_VALUE	0x69
+#define LSM6DS3TR_C_WHOAMI_DEFAULT_VALUE 0x6A
 
 class LSM6DS3 : public IMUBase {
 public:
@@ -134,6 +135,18 @@ private:
 		while (Wire.available()) {
 			dest[i++] = Wire.read();
 		}         // Put read results in the Rx buffer
+	}
+	
+	uint8_t checkReady(uint8_t address, uint8_t timeout)
+	{
+		uint8_t IMUWhoAmI = 0;
+		// Wait until a valid byte is returned, up until timeout value.
+		for (uint8_t checkCount = timeout; checkCount > 0; checkCount--) {
+			IMUWhoAmI = readByte(address, LSM6DS3_WHO_AM_I);
+			if (IMUWhoAmI == 0xFF) { delay(1); } else { break; }
+		}
+		// Return IMU identifier if found.
+		return IMUWhoAmI;
 	}
 };
 #endif /* _F_LSM6DS3_H_ */
