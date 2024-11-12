@@ -8,7 +8,7 @@
 
 class BMI160_QMC5883L : public IMUBase {
 public:
-	BMI160_QMC5883L() {};
+	explicit BMI160_QMC5883L(TwoWire& wire = Wire) : IMUBase(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {

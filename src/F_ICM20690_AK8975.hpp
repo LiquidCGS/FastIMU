@@ -8,7 +8,7 @@
 
 class ICM20690_AK8975 : public IMUBase {
 public:
-	ICM20690_AK8975() {};
+	explicit ICM20690_AK8975(TwoWire& wire = Wire) : IMUBase(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {

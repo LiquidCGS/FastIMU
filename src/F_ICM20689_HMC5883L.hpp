@@ -8,7 +8,7 @@
 
 class ICM20689_HMC5883L : public IMUBase {
 public:
-	ICM20689_HMC5883L() {};
+	explicit ICM20689_HMC5883L(TwoWire& wire = Wire) : IMUBase(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {

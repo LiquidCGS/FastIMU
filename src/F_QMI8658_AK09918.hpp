@@ -8,7 +8,7 @@
 
 class QMI8658_AK09918 : public IMUBase {
 public:
-	QMI8658_AK09918() {};
+	explicit QMI8658_AK09918(TwoWire& wire = Wire) : IMUBase(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {
