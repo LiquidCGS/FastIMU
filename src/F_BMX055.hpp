@@ -61,7 +61,7 @@
 
 class BMX055 : public IMUBase {
 public:
-	explicit BMX055(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit BMX055(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override;
@@ -118,6 +118,7 @@ private:
 	uint8_t GyroAddress;
 	uint8_t MagAddress;
 
+	TwoWire& wire;
 
 	void writeByte(uint8_t address, uint8_t subAddress, uint8_t data)
 	{

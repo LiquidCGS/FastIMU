@@ -59,7 +59,7 @@
 
 class QMI8658 : public IMUBase {
 public:
-	explicit QMI8658(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit QMI8658(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override;
@@ -110,6 +110,8 @@ private:
 	calData calibration;
 	uint8_t IMUAddress;
 
+	TwoWire& wire;
+	
 	bool dataAvailable(){ return (readByte(IMUAddress, QMI8658_STATUS0) & 0x03);}
 
 	void writeByte(uint8_t address, uint8_t subAddress, uint8_t data)

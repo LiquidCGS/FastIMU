@@ -103,7 +103,7 @@
 
 class BMI160 : public IMUBase {
 public:
-	explicit BMI160(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit BMI160(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override;
@@ -154,6 +154,7 @@ private:
 	calData calibration;
 	uint8_t IMUAddress;
 
+	TwoWire& wire;
 
 	void writeByte(uint8_t address, uint8_t subAddress, uint8_t data)
 	{

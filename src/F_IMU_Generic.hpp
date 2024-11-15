@@ -161,7 +161,7 @@
 
 class IMU_Generic : public IMUBase {
 public:
-	explicit IMU_Generic(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit IMU_Generic(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override;
@@ -214,6 +214,7 @@ private:
 	calData calibration;
 	uint8_t IMUAddress;
 
+	TwoWire& wire;
 
 	void writeByte(uint8_t address, uint8_t subAddress, uint8_t data)
 	{

@@ -8,7 +8,7 @@
 
 class MPU6500_QMC5883L : public IMUBase {
 public:
-	explicit MPU6500_QMC5883L(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit MPU6500_QMC5883L(TwoWire& wire = Wire) : IMU(wire), MAG(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {

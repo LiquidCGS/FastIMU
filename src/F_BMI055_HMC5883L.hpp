@@ -8,7 +8,7 @@
 
 class BMI055_HMC5883L : public IMUBase {
 public:
-	explicit BMI055_HMC5883L(TwoWire& wire = Wire) : IMUBase(wire) {};
+	explicit BMI055_HMC5883L(TwoWire& wire = Wire) : IMU(wire), MAG(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {
