@@ -76,10 +76,6 @@ public:
 	virtual String IMUManufacturer(){
 		return "Unknown";
 	}
-
-protected:
-	IMUBase(TwoWire& wire) : wire(wire) {}
-	TwoWire& wire;
 };
 
 #endif /* _F_IMUBase_H_ */
