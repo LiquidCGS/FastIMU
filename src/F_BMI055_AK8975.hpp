@@ -1,20 +1,20 @@
 #pragma once
 
-#ifndef _F_BMI055_QMC5883L_H_
-#define _F_BMI055_QMC5883L_H_
+#ifndef _F_BMI055_AK8975_H_
+#define _F_BMI055_AK8975_H_
 
 #include "F_BMI055.hpp"
-#include "F_QMC5883L.hpp"
+#include "F_AK8975.hpp"
 
-class BMI055_QMC5883L : public IMUBase {
+class BMI055_AK8975 : public IMUBase {
 public:
-	explicit BMI055_QMC5883L(TwoWire& wire = Wire) : IMU(wire), MAG(wire) {};
+	explicit BMI055_AK8975(TwoWire& wire = Wire) : IMU(wire), MAG(wire) {};
 
 	// Inherited via IMUBase
 	int init(calData cal, uint8_t address) override {
 		int e = IMU.init(cal, address);
 		if (e) { return e; }
-		e = MAG.init(cal, 0x0D);
+		e = MAG.init(cal, 0x0C);
 		if (e) { return -2; }
 		return 0;
 	}
@@ -57,18 +57,18 @@ public:
 	}
 
 	String IMUName() override {
-		return "BMI-055 + QMC5883L";
+		return "BMI-055 + AK8975";
 	}
 	String IMUType() override {
-		return "BMI055_QMC5883L";
+		return "BMI055_AK8975";
 	}
 	String IMUManufacturer() override {
-		return "Bosch + QST";
+		return "Bosch + AKM";
 	}
 
 private:
 	BMI055 IMU;
-	QMC5883L MAG;
+	AK8975 MAG;
 	
 	calData calibration;
 	uint8_t IMUAddress;
