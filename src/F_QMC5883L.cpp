@@ -4,7 +4,7 @@ int QMC5883L::init(calData cal, uint8_t address)
 {
 	IMUAddress = address;
 	//check sensor
-	if (!(readByte(IMUAddress, QMC5883L_WHOAMI) == QMC5883L_WHOAMI_VALUE && readByte(IMUAddress, 0x0C) == 0x01)) {
+	if (!(readByteI2C(wire, IMUAddress, QMC5883L_WHOAMI) == QMC5883L_WHOAMI_VALUE && readByteI2C(wire, IMUAddress, 0x0C) == 0x01)) {
 		return -1;
 	}
 	//load cal
@@ -20,18 +20,18 @@ int QMC5883L::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 	// Reset sensor.
-	writeByte(IMUAddress, QMC5883L_RESET1, 0x80);
+	writeByteI2C(wire, IMUAddress, QMC5883L_RESET1, 0x80);
 	delay(100);
-	writeByte(IMUAddress, QMC5883L_RESET2, 0x01);
+	writeByteI2C(wire, IMUAddress, QMC5883L_RESET2, 0x01);
 	delay(100);
 	//start up sensor, 200hz ODR, 128 OSR, 8G, Continuous mode.
-	writeByte(IMUAddress, QMC5883L_CTRL, 0x1D);
+	writeByteI2C(wire, IMUAddress, QMC5883L_CTRL, 0x1D);
 	return 0;
 }
 
 void QMC5883L::update()
 {
-	if (!(readByte(IMUAddress, QMC5883L_STATUS) & 0x01)) {
+	if (!(readByteI2C(wire, IMUAddress, QMC5883L_STATUS) & 0x01)) {
 		mag.magX = 0.f;
 		mag.magY = 0.f;
 		mag.magZ = 0.f;
@@ -39,9 +39,9 @@ void QMC5883L::update()
 	}
 	uint8_t rawData[6] = { 0 };
 	int16_t magCount[3] = { 0, 0, 0 };
-	readBytes(IMUAddress, QMC5883L_X_LSB, 6, &rawData[0]);
+	readBytesI2C(wire, IMUAddress, QMC5883L_X_LSB, 6, &rawData[0]);
 
-	if (!(readByte(IMUAddress, QMC5883L_STATUS) & 0x02)) {                                           // Check if magnetic sensor overflow set, if not then report data
+	if (!(readByteI2C(wire, IMUAddress, QMC5883L_STATUS) & 0x02)) {                                           // Check if magnetic sensor overflow set, if not then report data
 	magCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];   // Turn the MSB and LSB into a signed 16-bit value
 	magCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];   // Data stored as little Endian
 	magCount[2] = ((int16_t)rawData[5] << 8) | rawData[4];
@@ -53,7 +53,7 @@ void QMC5883L::update()
 	my = ((float)(magCount[1] * mRes - calibration.magBias[1]) * calibration.magScale[1]);  // get actual magnetometer value, this depends on scale being set
 	mz = ((float)(magCount[2] * mRes - calibration.magBias[2]) * calibration.magScale[2]);  //mul by 100 to convert from G to µT
 	
-	readBytes(IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
+	readBytesI2C(wire, IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
 	temperature = (float)((((int16_t)rawData[1] << 8) | rawData[0]) * tRes) + 20.f;
 	switch (geometryIndex) {
 	case 0:
@@ -116,8 +116,8 @@ void QMC5883L::calibrateMag(calData* cal)
 	for (ii = 0; ii < sample_count; ii++)
 	{
 		uint8_t rawData[6];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
-		if ((readByte(IMUAddress, QMC5883L_STATUS) & 0x01) && !(readByte(IMUAddress, QMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and overflow not to be.
-			readBytes(IMUAddress, QMC5883L_X_LSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
+		if ((readByteI2C(wire, IMUAddress, QMC5883L_STATUS) & 0x01) && !(readByteI2C(wire, IMUAddress, QMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and overflow not to be.
+			readBytesI2C(wire, IMUAddress, QMC5883L_X_LSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
 			mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value
 			mag_temp[1] = ((int16_t)rawData[3] << 8) | rawData[2];  // Data stored as little Endian
 			mag_temp[2] = ((int16_t)rawData[5] << 8) | rawData[4];

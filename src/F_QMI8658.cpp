@@ -16,22 +16,22 @@ int QMI8658::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (!(readByte(IMUAddress, QMI8658_WHO_AM_I) == QMI8658_WHO_AM_I_DEFAULT_VALUE)) {
+	if (!(readByteI2C(wire, IMUAddress, QMI8658_WHO_AM_I) == QMI8658_WHO_AM_I_DEFAULT_VALUE)) {
 		return -1;
 	}
 
 	// reset device
-	writeByte(IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
+	writeByteI2C(wire, IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
 	delay(100);										// wait for reset
 	
-	writeByte(IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
 	
-	writeByte(IMUAddress, QMI8658_CTRL2, 0x34);  	// Set up full scale Accel range. +-16G, 500hz ODR
-	writeByte(IMUAddress, QMI8658_CTRL3, 0x74); 	 // Set up full scale Gyro range. +-2000dps, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x34);  	// Set up full scale Accel range. +-16G, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x74); 	 // Set up full scale Gyro range. +-2000dps, 500hz ODR
 
-	writeByte(IMUAddress, QMI8658_CTRL5, 0x55);  	// Enable LPF for both accel and gyro, set to 5.32% of odr for around 26.6hz
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0x55);  	// Enable LPF for both accel and gyro, set to 5.32% of odr for around 26.6hz
 
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	delay(100);								    	// wait until they're done starting up...
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
@@ -47,7 +47,7 @@ void QMI8658::update() {
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
-	readBytes(IMUAddress, QMI8658_AX_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
+	readBytesI2C(wire, IMUAddress, QMI8658_AX_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -112,7 +112,7 @@ void QMI8658::update() {
 	}
 
 	uint8_t buf[2];
-	readBytes(IMUAddress, QMI8658_TEMP_L, 2, &buf[0]);
+	readBytesI2C(wire, IMUAddress, QMI8658_TEMP_L, 2, &buf[0]);
 	temperature = ((float)buf[1] + (float)buf[0] / 256);	
 }
 
@@ -126,7 +126,7 @@ void QMI8658::getGyro(GyroData* out)
 }
 
 int QMI8658::setAccelRange(int range) {
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
 	uint8_t c;
 	if (range == 16) {
 		aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
@@ -147,13 +147,13 @@ int QMI8658::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, QMI8658_CTRL2, c); 	// Write new ACCEL_CONFIG register value
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, c); 	// Write new ACCEL_CONFIG register value
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	return 0;
 }
 
 int QMI8658::setGyroRange(int range) {
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);	    // disable accelerometer and gyro, disable sync
 	uint8_t c;
 	if (range == 2048) {
 		gRes = 2048.f / 32768.f;			//gres value for full range (2000dps) readings
@@ -178,8 +178,8 @@ int QMI8658::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, QMI8658_CTRL3, c); 	// Write new ACCEL_CONFIG register value
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, c); 	// Write new ACCEL_CONFIG register value
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	return 0;
 }
 
@@ -193,24 +193,24 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
-	writeByte(IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
+	writeByteI2C(wire, IMUAddress, QMI8658_RESET, 0xFF);	    // Toggle softreset
 	delay(100);										// wait for reset
 	
-	writeByte(IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
 
-	writeByte(IMUAddress, QMI8658_CTRL2, 0x04);  	// Set up full scale Accel range. +-2G, 500hz ODR
-	writeByte(IMUAddress, QMI8658_CTRL3, 0x34); 	 // Set up Gyro range. +-1024dps, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x04);  	// Set up full scale Accel range. +-2G, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x34); 	 // Set up Gyro range. +-1024dps, 500hz ODR
 
-	writeByte(IMUAddress, QMI8658_CTRL5, 0x77);  	// Enable LPF for both accel and gyro, set to 14% of odr for around 70hz
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0x77);  	// Enable LPF for both accel and gyro, set to 14% of odr for around 70hz
 	
-	writeByte(IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	delay(100);								    	//wait until they're done starting up...
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytes(IMUAddress, QMI8658_AX_L, 12, &data[0]);    // Read the 12 raw data registers into data array
+		readBytesI2C(wire, IMUAddress, QMI8658_AX_L, 12, &data[0]);    // Read the 12 raw data registers into data array
 
 		accel_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
 		accel_temp[1] = ((int16_t)data[3] << 8) | data[2];

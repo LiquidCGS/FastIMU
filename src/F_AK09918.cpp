@@ -17,12 +17,12 @@ int AK09918::init(calData cal, uint8_t address)
 
 	uint8_t wai[2];
 	// Check wai for correct device
-	readBytes(AK09918_ADDRESS, AK09918_WIA1, 2, wai);
+	readBytesI2C(wire, AK09918_ADDRESS, AK09918_WIA1, 2, wai);
 	if (!(wai[0] == 0x48 && wai[1] == 0x0C)) {
         return -1; // Failure
     }
 
-	writeByte(AK09918_ADDRESS, AK09918_CNTL2, AK09918_NORMAL); // Enter Fuse ROM access mode
+	writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, AK09918_NORMAL); // Enter Fuse ROM access mode
 	delay(10);
 
 	return 0;
@@ -33,7 +33,7 @@ void AK09918::update() {
 	{
 		int16_t magCount[3] = { 0, 0, 0 };                           // Stores the 16-bit signed magnetometer sensor output
 		uint8_t rawData[8];                                          // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
-		readBytes(AK09918_ADDRESS, AK09918_HXL, 8, &rawData[0]);    // Read the six raw data and ST2 registers sequentially into data array
+		readBytesI2C(wire, AK09918_ADDRESS, AK09918_HXL, 8, &rawData[0]);    // Read the six raw data and ST2 registers sequentially into data array
 		uint8_t c = rawData[7];                                      // End data read by reading ST2 register
 		if (!(c & AK09918_HOFL_BIT)) {                                           // Check if magnetic sensor overflow set, if not then report data
 			magCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];   // Turn the MSB and LSB into a signed 16-bit value
@@ -92,8 +92,8 @@ void AK09918::update() {
 	}
 	else
 	{
-		if(!readByte(AK09918_ADDRESS, AK09918_CNTL2) & 0x01){
-			writeByte(AK09918_ADDRESS, AK09918_CNTL2, 0x01); // Set magnetometer to single measure mode.
+		if(!readByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2) & 0x01){
+			writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, 0x01); // Set magnetometer to single measure mode.
 		}
 	}
 	//    // Apply mag soft iron error compensation
@@ -139,11 +139,11 @@ void AK09918::calibrateMag(calData* cal)
 
 	for (ii = 0; ii < sample_count; ii++)
 	{	
-		writeByte(AK09918_ADDRESS, AK09918_CNTL2, 0x01); // Set magnetometer to single measure mode.
+		writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, 0x01); // Set magnetometer to single measure mode.
 		delay(15); // at 100 Hz ODR, new mag data is available every 10 ms
 		uint8_t rawData[8];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
-		if (readByte(AK09918_ADDRESS, AK09918_ST1) & 0x01) { // wait for magnetometer data ready bit to be set
-			readBytes(AK09918_ADDRESS, AK09918_HXL, 8, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
+		if (readByteI2C(wire, AK09918_ADDRESS, AK09918_ST1) & 0x01) { // wait for magnetometer data ready bit to be set
+			readBytesI2C(wire, AK09918_ADDRESS, AK09918_HXL, 8, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
 			uint8_t c = rawData[7];	 // End data read by reading ST2 register
 			if (!(c & AK09918_HOFL_BIT)) { // Check if magnetic sensor overflow set, if not then report data
 				mag_temp[0] = ((int16_t)rawData[1] << 8) | rawData[0];  // Turn the MSB and LSB into a signed 16-bit value

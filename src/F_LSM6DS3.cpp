@@ -24,13 +24,13 @@ int LSM6DS3::init(calData cal, uint8_t address)
 	}
 
 	// reset device
-	writeByte(IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
 	while (!checkReady(IMUAddress, 100));			// wait for reset
 	
-	writeByte(IMUAddress, LSM6DS3_CTRL1_XL, 0x47);	// Start up accelerometer, set range to +-16g, set output data rate to 104hz, BW_XL bits to 11.
-	writeByte(IMUAddress, LSM6DS3_CTRL2_G, 0x4C);	// Start up gyroscope, set range to -+2000dps, output data rate to 104hz.
-	writeByte(IMUAddress, LSM6DS3_CTRL4_C, 0x80);	// Set XL_BW_SCAL_ODR;
-	//writeByte(IMUAddress, LSM6DS3_CTRL8_XL, 0x80);
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x47);	// Start up accelerometer, set range to +-16g, set output data rate to 104hz, BW_XL bits to 11.
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0x4C);	// Start up gyroscope, set range to -+2000dps, output data rate to 104hz.
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL4_C, 0x80);	// Set XL_BW_SCAL_ODR;
+	//writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL8_XL, 0x80);
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
 	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
@@ -38,12 +38,12 @@ int LSM6DS3::init(calData cal, uint8_t address)
 }
 
 void LSM6DS3::update() {
-	if (!(readByte(IMUAddress, LSM6DS3_STATUS_REG) & 0x03)) { return; }
+	if (!(readByteI2C(wire, IMUAddress, LSM6DS3_STATUS_REG) & 0x03)) { return; }
 
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[14];                                          // x/y/z accel register data stored here
 
-	readBytes(IMUAddress, LSM6DS3_OUT_TEMP_L, 14, &rawData[0]);    // Read the 12 raw data registers into data array
+	readBytesI2C(wire, IMUAddress, LSM6DS3_OUT_TEMP_L, 14, &rawData[0]);    // Read the 12 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[3] << 8) | rawData[2];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[5] << 8) | rawData[4];
@@ -141,7 +141,7 @@ int LSM6DS3::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, LSM6DS3_CTRL1_XL, c); // Write new ACCEL_CONFIG register value
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, c); // Write new ACCEL_CONFIG register value
 	return 0;
 }
 
@@ -166,7 +166,7 @@ int LSM6DS3::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, LSM6DS3_CTRL2_G, c); // Write new GYRO_CONFIG register value
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, c); // Write new GYRO_CONFIG register value
 	return 0;
 }
 
@@ -180,18 +180,18 @@ void LSM6DS3::calibrateAccelGyro(calData* cal)
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
-	writeByte(IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
 	delay(100);										// wait for reset
 
-	writeByte(IMUAddress, LSM6DS3_CTRL1_XL, 0x70);	// Start up accelerometer, set range to +-2g, set output data rate to 104hz
-	writeByte(IMUAddress, LSM6DS3_CTRL2_G, 0x70);	// Start up gyroscope, set range to -+250dps, output data rate to 104hz.
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x70);	// Start up accelerometer, set range to +-2g, set output data rate to 104hz
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0x70);	// Start up gyroscope, set range to -+250dps, output data rate to 104hz.
 	delay(100);										// wait...
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytes(IMUAddress, LSM6DS3_OUTX_L_G, 12, &data[0]);    // Read the 12 raw data registers into data array
+		readBytesI2C(wire, IMUAddress, LSM6DS3_OUTX_L_G, 12, &data[0]);    // Read the 12 raw data registers into data array
 
 		gyro_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
 		gyro_temp[1] = ((int16_t)data[3] << 8) | data[2];

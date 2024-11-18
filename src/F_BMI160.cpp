@@ -16,25 +16,25 @@ int BMI160::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (!(readByte(IMUAddress, BMI160_CHIP_ID) == BMI160_CHIP_ID_DEFAULT_VALUE)) {
+	if (!(readByteI2C(wire, IMUAddress, BMI160_CHIP_ID) == BMI160_CHIP_ID_DEFAULT_VALUE)) {
 		return -1;
 	}
 
 	// reset device
-	writeByte(IMUAddress, BMI160_CMD, 0xB6);	    // Toggle softreset
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0xB6);	    // Toggle softreset
 	delay(100);										// wait for reset
 	
-	writeByte(IMUAddress, BMI160_CMD, 0x11);	    // Start up accelerometer
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0x11);	    // Start up accelerometer
 	delay(100);								    	//wait until they're done starting up...
-	writeByte(IMUAddress, BMI160_CMD, 0x15);		// Start up gyroscope
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0x15);		// Start up gyroscope
 	delay(100);								    	//wait until they're done starting up...
 
 
-	writeByte(IMUAddress, BMI160_ACC_RANGE, 0x0C);  // Set up full scale Accel range. +-16G
-	writeByte(IMUAddress, BMI160_GYR_RANGE, 0x00);  // Set up full scale Gyro range. +-2000dps
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, 0x0C);  // Set up full scale Accel range. +-16G
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, 0x00);  // Set up full scale Gyro range. +-2000dps
 
-	writeByte(IMUAddress, BMI160_ACC_CONF, 0x0A);  // Set Accel ODR to 400hz, BWP mode to Oversample 4, LPF of ~40.5hz
-	writeByte(IMUAddress, BMI160_GYR_CONF, 0x0A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 4, LPF of ~34.15hz
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0x0A);  // Set Accel ODR to 400hz, BWP mode to Oversample 4, LPF of ~40.5hz
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0x0A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 4, LPF of ~34.15hz
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
 	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
@@ -45,7 +45,7 @@ void BMI160::update() {
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
-	readBytes(IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
+	readBytesI2C(wire, IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -110,7 +110,7 @@ void BMI160::update() {
 	}
 
 	uint8_t buf[2];
-	readBytes(IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
+	readBytesI2C(wire, IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
 	float temp = ((((int16_t)buf[1]) << 8) | buf[0]);
 	temperature = (temp / 512) + 23.f;
 }
@@ -145,7 +145,7 @@ int BMI160::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
 	return 0;
 }
 
@@ -174,7 +174,7 @@ int BMI160::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
 	return 0;
 }
 
@@ -188,26 +188,26 @@ void BMI160::calibrateAccelGyro(calData* cal)
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
-	writeByte(IMUAddress, BMI160_CMD, 0xB6); // Toggle softreset
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0xB6); // Toggle softreset
 	delay(100); // wait for reset
 
-	writeByte(IMUAddress, BMI160_CMD, 0x11);  // Start up accelerometer
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0x11);  // Start up accelerometer
 	delay(200);
-	writeByte(IMUAddress, BMI160_CMD, 0x15);  // Start up gyroscope
+	writeByteI2C(wire, IMUAddress, BMI160_CMD, 0x15);  // Start up gyroscope
 	delay(200);								  //wait until they're done starting up...
 	
 
-	writeByte(IMUAddress, BMI160_ACC_RANGE, 0x03);  // Set up Accel range. +-2G
-	writeByte(IMUAddress, BMI160_GYR_RANGE, 0x04);  // Set up Gyro range. +-125dps
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, 0x03);  // Set up Accel range. +-2G
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, 0x04);  // Set up Gyro range. +-125dps
 
-	writeByte(IMUAddress, BMI160_ACC_CONF, 0x2A);  // Set Accel ODR to 400hz, BWP mode to Oversample 1, LPF of ~162hz
-	writeByte(IMUAddress, BMI160_GYR_CONF, 0x2A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 1, LPF of ~136hz
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0x2A);  // Set Accel ODR to 400hz, BWP mode to Oversample 1, LPF of ~162hz
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0x2A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 1, LPF of ~136hz
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytes(IMUAddress, BMI160_GYR_X_L, 12, &data[0]);    // Read the 12 raw data registers into data array
+		readBytesI2C(wire, IMUAddress, BMI160_GYR_X_L, 12, &data[0]);    // Read the 12 raw data registers into data array
 
 		gyro_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
 		gyro_temp[1] = ((int16_t)data[3] << 8) | data[2];

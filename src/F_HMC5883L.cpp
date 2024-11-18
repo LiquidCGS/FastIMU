@@ -4,7 +4,7 @@ int HMC5883L::init(calData cal, uint8_t address)
 {
 	IMUAddress = address;
 	//check sensor
-	if (!(readByte(IMUAddress, HMC5883L_IDC) == HMC5883L_WHOAMI_VALUE)) {
+	if (!(readByteI2C(wire, IMUAddress, HMC5883L_IDC) == HMC5883L_WHOAMI_VALUE)) {
 		return -1;
 	}
 	//load cal
@@ -20,20 +20,20 @@ int HMC5883L::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 	// setup sensor. 75hz odr, normal mode, 8 samples
-	writeByte(IMUAddress, HMC5883L_CFGA, 0x78);
+	writeByteI2C(wire, IMUAddress, HMC5883L_CFGA, 0x78);
 	delay(1);
 	// +- 8100uT
-	writeByte(IMUAddress, HMC5883L_CFGB, 0xE0);
+	writeByteI2C(wire, IMUAddress, HMC5883L_CFGB, 0xE0);
 	delay(1);
 	// cont mode.
-	writeByte(IMUAddress, HMC5883L_MODE, 0x00);
+	writeByteI2C(wire, IMUAddress, HMC5883L_MODE, 0x00);
 	delay(1);
 	return 0;
 }
 
 void HMC5883L::update()
 {
-	if (!(readByte(IMUAddress, HMC5883L_STATUS) & 0x01) && (readByte(IMUAddress, HMC5883L_STATUS) & 0x02)) {
+	if (!(readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x01) && (readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x02)) {
 		mag.magX = 0.f;
 		mag.magY = 0.f;
 		mag.magZ = 0.f;
@@ -41,7 +41,7 @@ void HMC5883L::update()
 	}
 	uint8_t rawData[6] = { 0 };
 	int16_t magCount[3] = { 0, 0, 0 };
-	readBytes(IMUAddress, HMC5883L_X_MSB, 6, &rawData[0]);
+	readBytesI2C(wire, IMUAddress, HMC5883L_X_MSB, 6, &rawData[0]);
 
 	magCount[0] = ((int16_t)rawData[0] << 8) | rawData[1];   // Turn the MSB and LSB into a signed 16-bit value
 	magCount[1] = ((int16_t)rawData[2] << 8) | rawData[3];  
@@ -106,13 +106,13 @@ void HMC5883L::getMag(MagData* out)
 void HMC5883L::calibrateMag(calData* cal) 
 {
 	// setup sensor. 75hz odr, normal mode, 8 samples
-	writeByte(IMUAddress, HMC5883L_CFGA, 0x78);
+	writeByteI2C(wire, IMUAddress, HMC5883L_CFGA, 0x78);
 	delay(1);
 	// +- 8100uT
-	writeByte(IMUAddress, HMC5883L_CFGB, 0xE0);
+	writeByteI2C(wire, IMUAddress, HMC5883L_CFGB, 0xE0);
 	delay(1);
 	// cont mode.
-	writeByte(IMUAddress, HMC5883L_MODE, 0x00);
+	writeByteI2C(wire, IMUAddress, HMC5883L_MODE, 0x00);
 	delay(1);
 	
 	uint16_t ii = 0, sample_count = 0;
@@ -125,8 +125,8 @@ void HMC5883L::calibrateMag(calData* cal)
 	for (ii = 0; ii < sample_count; ii++)
 	{
 		uint8_t rawData[6];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
-		if ((readByte(IMUAddress, HMC5883L_STATUS) & 0x01) && !(readByte(IMUAddress, HMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and lcok not to be
-			readBytes(IMUAddress, HMC5883L_X_MSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
+		if ((readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x01) && !(readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x02)) { // wait for magnetometer data ready bit to be set and lcok not to be
+			readBytesI2C(wire, IMUAddress, HMC5883L_X_MSB, 6, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
 			mag_temp[0] = ((int16_t)rawData[0] << 8) | rawData[1];  // Turn the MSB and LSB into a signed 16-bit value
 			mag_temp[2] = ((int16_t)rawData[2] << 8) | rawData[3];  // Data stored as little Endian
 			mag_temp[1] = ((int16_t)rawData[4] << 8) | rawData[5];

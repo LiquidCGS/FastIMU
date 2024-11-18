@@ -30,51 +30,51 @@ int BMX055::init(calData cal, uint8_t address)
 		calibration = cal;
 	}
 
-	if (!(readByte(AccelAddress, BMX055_ACCD_CHIPID) == BMX055_ACCEL_ID)) {
+	if (!(readByteI2C(wire, AccelAddress, BMX055_ACCD_CHIPID) == BMX055_ACCEL_ID)) {
 		return -2;
 	}
-	if (!(readByte(GyroAddress, BMX055_GYR_CHIP_ID) == BMX055_GYRO_ID)) {
+	if (!(readByteI2C(wire, GyroAddress, BMX055_GYR_CHIP_ID) == BMX055_GYRO_ID)) {
 		return -3;
 	}
-	if (!(readByte(MagAddress, BMX055_MAG_CHIP_ID) == BMX055_MAG_ID)) {
+	if (!(readByteI2C(wire, MagAddress, BMX055_MAG_CHIP_ID) == BMX055_MAG_ID)) {
 		return -4;
 	}
 
 	// Reset sensor.
-	writeByte(AccelAddress, BMX055_BGW_SOFTRESET, 0xB6);
-	writeByte(GyroAddress, BMX055_GYR_BGW_SOFTRESET, 0xB6);
-	writeByte(MagAddress, BMX055_MAG_PWR_CTRL_SR, 0x83);
+	writeByteI2C(wire, AccelAddress, BMX055_BGW_SOFTRESET, 0xB6);
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_BGW_SOFTRESET, 0xB6);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_PWR_CTRL_SR, 0x83);
 	delay(100);
 
 	// Set accelerometer range
-	writeByte(AccelAddress, BMX055_PMU_RANGE, 0x0C); // Write '1100' into bits 3:0, setting accelerometer into 16g range.
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_RANGE, 0x0C); // Write '1100' into bits 3:0, setting accelerometer into 16g range.
 
 	// Set LPF
-	writeByte(AccelAddress, BMX055_PMU_BW, 0x0B); // Write '01011' into bits 4:0, setting the accelerometer lpf bandwidth to 62.5hz
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_BW, 0x0B); // Write '01011' into bits 4:0, setting the accelerometer lpf bandwidth to 62.5hz
 
 	// Enter normal mode
-	writeByte(AccelAddress, BMX055_PMU_LPW, 0x00); 
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_LPW, 0x00); 
 
 	// Set Gyro range
-	writeByte(GyroAddress, BMX055_GYR_RANGE, 0x00);	// Write '000' into bits 2:0, setting gyro into 2000dps range.
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_RANGE, 0x00);	// Write '000' into bits 2:0, setting gyro into 2000dps range.
 
 	// Set LPF
-	writeByte(GyroAddress, BMX055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
 
 	// Enter normal mode
-	writeByte(GyroAddress, BMX055_GYR_LPM1, 0x00);
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_LPM1, 0x00);
 
 	// Enable all magnetometer axis
-	writeByte(MagAddress, BMX055_MAG_INT_REG_1, 0x38);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_INT_REG_1, 0x38);
 
 	// Set magnetometer repetitions for X and Y axis to 29
-	writeByte(MagAddress, BMX055_MAG_REP_CTRL_XY, 0x0E);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_REP_CTRL_XY, 0x0E);
 
 	// Set magnetometer repetitions for Z axis to 53
-	writeByte(MagAddress, BMX055_MAG_REP_CTRL_Z, 0x32);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_REP_CTRL_Z, 0x32);
 
 	// Set magnetometer output data rate to 30hz and enter normal mode
-	writeByte(MagAddress, BMX055_MAG_OM_ODR_SELF, 0x38);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_OM_ODR_SELF, 0x38);
 
 	delay (100);
 	return 0;
@@ -90,9 +90,9 @@ void BMX055::update()
 	uint8_t rawDataGyro[6];                                       // x/y/z gyro register data stored here
 	uint8_t rawDataMag[6];										  // x/y/z mag register data stored here
 
-	readBytes(AccelAddress, BMX055_ACCD_X_LSB, 7, &rawDataAccel[0]);       // Read the 7 raw accelerometer data registers into data array
-	readBytes(GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &rawDataGyro[0]);   // Read the 6 raw gyroscope data registers into data array
-	readBytes(MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);   // Read the 6 raw magnetometer data registers into data array
+	readBytesI2C(wire, AccelAddress, BMX055_ACCD_X_LSB, 7, &rawDataAccel[0]);       // Read the 7 raw accelerometer data registers into data array
+	readBytesI2C(wire, GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &rawDataGyro[0]);   // Read the 6 raw gyroscope data registers into data array
+	readBytesI2C(wire, MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);   // Read the 6 raw magnetometer data registers into data array
 
 	//accel registers
 	AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;		  // Turn the MSB and LSB into a signed 12-bit value
@@ -205,7 +205,7 @@ int BMX055::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(AccelAddress, BMX055_PMU_RANGE, c); // Write new BMX055_PMU_RANGE register value
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_RANGE, c); // Write new BMX055_PMU_RANGE register value
 	return 0;
 }
 
@@ -234,7 +234,7 @@ int BMX055::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByte(GyroAddress, BMX055_GYR_RANGE, c); // Write new BMX055_GYR_RANGE register value
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_RANGE, c); // Write new BMX055_GYR_RANGE register value
 	return 0;
 }
 
@@ -248,30 +248,30 @@ void BMX055::calibrateAccelGyro(calData* cal)
 	float  accelsensitivity = 2.f / 2048.f;				//ares value for full range (16g) readings (12 bit)
 
 	// Reset sensor.
-	writeByte(AccelAddress, BMX055_BGW_SOFTRESET, 0xB6);
-	writeByte(GyroAddress, BMX055_GYR_BGW_SOFTRESET, 0xB6);
+	writeByteI2C(wire, AccelAddress, BMX055_BGW_SOFTRESET, 0xB6);
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_BGW_SOFTRESET, 0xB6);
 	delay(100);
 	// Set accelerometer range
-	writeByte(AccelAddress, BMX055_PMU_RANGE, 0x03); // Write '0011' into bits 3:0, setting accelerometer into 2g range, maximum sensitivity
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_RANGE, 0x03); // Write '0011' into bits 3:0, setting accelerometer into 2g range, maximum sensitivity
 	// Set LPF
-	writeByte(AccelAddress, BMX055_PMU_BW, 0x0C); // Write '01100' into bits 4:0, setting the accelerometer lpf bandwidth to 125hz
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_BW, 0x0C); // Write '01100' into bits 4:0, setting the accelerometer lpf bandwidth to 125hz
 	// Enter normal mode
-	writeByte(AccelAddress, BMX055_PMU_LPW, 0x00);
+	writeByteI2C(wire, AccelAddress, BMX055_PMU_LPW, 0x00);
 	// Reset sensor.
 	// Set Gyro range
-	writeByte(GyroAddress, BMX055_GYR_RANGE, 0x04);	// Write '100' into bits 2:0, setting gyro into 125dps range, maximum sensitivity
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_RANGE, 0x04);	// Write '100' into bits 2:0, setting gyro into 125dps range, maximum sensitivity
 	// Set LPF
-	writeByte(GyroAddress, BMX055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
 	// Enter normal mode
-	writeByte(GyroAddress, BMX055_GYR_LPM1, 0x00);
+	writeByteI2C(wire, GyroAddress, BMX055_GYR_LPM1, 0x00);
 	delay(10);
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytes(AccelAddress, BMX055_ACCD_X_LSB, 6, &data[0]);       // Read the 7 raw accelerometer data registers into data array
-		readBytes(GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &data[6]);   // Read the 6 raw gyroscope data registers into data array
+		readBytesI2C(wire, AccelAddress, BMX055_ACCD_X_LSB, 6, &data[0]);       // Read the 7 raw accelerometer data registers into data array
+		readBytesI2C(wire, GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &data[6]);   // Read the 6 raw gyroscope data registers into data array
 
 		accel_temp[0] = ((data[1] << 8) | (data[0] & 0xF0)) >> 4;  // Form signed 16-bit integer for each sample
 		accel_temp[1] = ((data[3] << 8) | (data[2] & 0xF0)) >> 4;
@@ -358,7 +358,7 @@ void BMX055::calibrateMag(calData* cal)
 		uint8_t rawDataMag[6];
 		float magReading[3];
 
-		readBytes(MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);				// Read the 6 raw magnetometer data registers into data array
+		readBytesI2C(wire, MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);				// Read the 6 raw magnetometer data registers into data array
 
 		MagCount[0] = ((rawDataMag[1] << 8) | (rawDataMag[0] & 0xF8)) >> 3;		  // Turn the MSB and LSB into a signed 13-bit value
 		MagCount[1] = ((rawDataMag[3] << 8) | (rawDataMag[2] & 0xF8)) >> 3;
