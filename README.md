@@ -1,6 +1,7 @@
 # FastIMU
 ![1](fast.png)
-Supported IMUS: 
+
+### Supported IMUS: 
 
 * MPU9255 
 * MPU9250 
@@ -17,46 +18,35 @@ Supported IMUS:
 * LSM6DSL (currently untested)
 * QMI8658
 
-Supported Magnetometers:
+### Supported Magnetometers:
 * QMC5883L
 * HMC5883L
 * AK8975
+* AK8963
+* AK09918
 
-Supported IMU + Mag Stacking combos (All of them expect IMU address for initialization):
-* MPU6515 + QMC5883L (uses type MPU6515_QMC5883L)
-* MPU6500 + QMC5883L (uses type MPU6500_QMC5883L)
-* MPU6050 + QMC5883L (uses type MPU6050_QMC5883L)
-* ICM20689 + QMC5883L (uses type ICM20689_QMC5883L)
-* ICM20690 + QMC5883L (uses type ICM20690_QMC5883L)
-* BMI055 + QMC5883L (uses type BMI055_QMC5883L)
-* BMI160 + QMC5883L (uses type BMI160_QMC5883L)
-* LSM6DS3 + QMC5883L (uses type LSM6DS3_QMC5883L)
-* LSM6DSL + QMC5883L (uses type LSM6DSL_QMC5883L)
-* QMI8658 + QMC5883L (uses type QMI8658_QMC5883L)
+### Using non default I2C ports:
+If you're planning on using an IMU on a non-default I2C port, you can specify the port in the constructor of your IMU, for example:
+```c++
+ICM20689 IMU1(Wire); 
+MPU6500 IMU2(Wire1); 
+```
+creates two IMU objects, `ICM20689` will be using the I2C port assigned to `Wire` and `MPU6500` will be on the I2C port assigned to `Wire1`.
 
-* MPU6515 + HMC5883L (uses type MPU6515_HMC5883L)
-* MPU6500 + HMC5883L (uses type MPU6500_HMC5883L)
-* MPU6050 + HMC5883L (uses type MPU6050_HMC5883L)
-* ICM20689 + HMC5883L (uses type ICM20689_HMC5883L)
-* ICM20690 + HMC5883L (uses type ICM20690_HMC5883L)
-* BMI055 + HMC5883L (uses type BMI055_HMC5883L)
-* BMI160 + HMC5883L (uses type BMI160_HMC5883L)
-* LSM6DS3 + HMC5883L (uses type LSM6DS3_HMC5883L)
-* LSM6DSL + HMC5883L (uses type LSM6DSL_HMC5883L)
-* QMI8658 + HMC5883L (uses type QMI8658_HMC5883L)
+### Hybrid IMU's:
+You can also use Hybrid IMU's, which means you can add any supported magnetometer to any supported IMU by using the `IMU_HYBRID` class as follows:
+```c++
+IMU_HYBRID<IMU, MAG> IMU(Wire);
+```
 
-* MPU6515 + AK8975 (uses type MPU6515_AK8975)
-* MPU6500 + AK8975 (uses type MPU6500_AK8975)
-* MPU6050 + AK8975 (uses type MPU6050_AK8975)
-* ICM20689 + AK8975 (uses type ICM20689_AK8975)
-* ICM20690 + AK8975 (uses type ICM20690_AK8975)
-* BMI055 + AK8975 (uses type BMI055_AK8975)
-* BMI160 + AK8975 (uses type BMI160_AK8975)
-* LSM6DS3 + AK8975 (uses type LSM6DS3_AK8975)
-* LSM6DSL + AK8975 (uses type LSM6DSL_AK8975)
-* QMI8658 + AK8975 (uses type QMI8658_AK8975)
+For example
+```c++
+IMU_HYBRID<MPU6050, QMC5883L> IMU(Wire);
+```
 
-Planned:
+creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IMU, that returns accel and gyro values from the `MPU6050` and magnetometer values from the `QMC5883L` respectively
+
+### Planned:
 * BNO080 (probably soonish)
 * GY-85
 * BMM150 
@@ -64,7 +54,7 @@ Planned:
 * ICM20948 
 * BMI270 (if I can get my hands on one)
 
-## Data types
+### Data types
 
 * ```AccelData``` Contains all three axis of Accelerometer data, these are named ```accelX```, ```accelY``` and ```accelZ```
 
@@ -76,8 +66,8 @@ Planned:
 
 * ```CalData``` Contains a boolean component named ```valid``` that must be set to ```true``` if the data is valid, it contains float array named ```accelBias``` for accelerometer biases, one named ```gyroBias``` for gyroscope bias, one named ```magBias``` for magnetometer biases and one named ```magScale``` for magnetometer scaling.
 
-## Functions
-* ```init``` Takes in a ```calData``` function and a ```byte``` address, this function initializes the IMU, it defaults to the maximum ranges allowed by the IMU. This function will return a 0 if initialization was successful and a negative number if it failed to connect to the IMU.
+### Functions
+* ```init``` Takes in a ```calData``` function and an optional ```byte``` address, this function initializes the IMU, it defaults to the maximum ranges allowed by the IMU. This function will return a 0 if initialization was successful and a negative number if it failed to connect to the IMU. if no address is provided, the default for the selected IMU will be used.
 
 * ```update``` Reads new IMU data if available.
 
@@ -114,7 +104,7 @@ Planned:
 * ```IMUManufacturer``` Returns a string containing the IMU's manufacturer.
 
 
-## Supported IMU VR geometries (and their index numbers):
+### Supported IMU VR geometries (and their index numbers):
 
 ![2](MountIndex.png)
 
