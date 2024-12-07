@@ -57,13 +57,14 @@
 #define QMI8658_REVISION_ID 0x01
 #define QMI8658_WHO_AM_I 0x00
 #define QMI8658_WHO_AM_I_DEFAULT_VALUE 0x05
+#define QMI8658_DEFAULT_ADDRESS 0x6B
 
 class QMI8658 : public IMUBase {
 public:
 	explicit QMI8658(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = QMI8658_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

@@ -26,13 +26,14 @@
 #define QMC5883L_WHOAMI		0x0D
 
 #define QMC5883L_WHOAMI_VALUE	0xFF
+#define QMC5883L_DEFAULT_ADDRESS 0x0D
 
 class QMC5883L : public IMUBase {
 public:
 	explicit QMC5883L(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = QMC5883L_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override {};

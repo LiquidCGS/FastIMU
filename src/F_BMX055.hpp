@@ -58,6 +58,7 @@
 #define BMX055_MAG_HIGH_TH_INT		 0x50
 #define BMX055_MAG_REP_CTRL_XY		 0x51
 #define BMX055_MAG_REP_CTRL_Z		 0x52
+#define BMX055_DEFAULT_ADDRESS		 0x18
 
 
 class BMX055 : public IMUBase {
@@ -65,7 +66,7 @@ public:
 	explicit BMX055(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = BMX055_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

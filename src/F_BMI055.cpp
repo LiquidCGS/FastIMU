@@ -1,6 +1,6 @@
 #include "F_BMI055.hpp"
 
-int BMI055::init(calData cal, uint8_t address) 
+int BMI055::init(calData cal, uint8_t address = BMI055_DEFAULT_ADDRESS)
 {
 	//initialize address variable and calibration data.
 	if (address == 0x18 || address == 0x68) {

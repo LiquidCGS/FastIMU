@@ -2,7 +2,7 @@
 
 //Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
 
-int BMI160::init(calData cal, uint8_t address) 
+int BMI160::init(calData cal, uint8_t address = BMI160_DEFAULT_ADDRESS)
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;

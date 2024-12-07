@@ -1,7 +1,7 @@
 #include "F_AK8963.hpp"
 
 
-int AK8963::init(calData cal, uint8_t address) 
+int AK8963::init(calData cal, uint8_t address = AK8963_DEFAULT_ADDRESS)
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;

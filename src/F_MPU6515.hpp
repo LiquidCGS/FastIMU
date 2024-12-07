@@ -138,13 +138,14 @@
 #define MPU6515_ZA_OFFSET_H      0x7D
 #define MPU6515_ZA_OFFSET_L      0x7E
 
+#define MPU6515_DEFAULT_ADDRESS 0x68
 
 class MPU6515 : public IMUBase {
 public:
 	explicit MPU6515(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = MPU6515_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

@@ -38,14 +38,14 @@
 #define BMI055_GYR_BW            0x10
 #define BMI055_GYR_LPM1          0x11
 #define BMI055_GYR_BGW_SOFTRESET 0x14
-
+#define BMI055_DEFAULT_ADDRESS   0x18
 
 class BMI055 : public IMUBase {
 public:
 	explicit BMI055(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = BMI055_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

@@ -81,14 +81,14 @@
 #define ICM20689_YA_OFFSET_L      0x7B
 #define ICM20689_ZA_OFFSET_H      0x7D
 #define ICM20689_ZA_OFFSET_L      0x7E
-
+#define ICM20689_DEFAULT_ADDRESS 0x68
 
 class ICM20689 : public IMUBase {
 public:
 	explicit ICM20689(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = ICM20689_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

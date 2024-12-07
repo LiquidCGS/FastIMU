@@ -159,13 +159,14 @@
 #define IMU_Generic_ZA_OFFSET_H      0x7D
 #define IMU_Generic_ZA_OFFSET_L      0x7E
 
+#define IMU_Generic_DEFAULT_ADDRESS 0x68
 
 class IMU_Generic : public IMUBase {
 public:
 	explicit IMU_Generic(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = IMU_Generic_DEFAULT_ADDRESS) override;
 	int initMagnetometer();
 
 	void update() override;

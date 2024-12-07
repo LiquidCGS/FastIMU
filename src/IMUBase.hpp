@@ -41,7 +41,7 @@ class IMUBase {
 public:
 	virtual ~IMUBase() {}
 
-	virtual int init(calData cal, uint8_t address) = 0;
+	virtual int init(calData cal, uint8_t address = 0x00) = 0;
 	virtual void update() = 0;
 
 	virtual void getAccel(AccelData* out) = 0;

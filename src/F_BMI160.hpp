@@ -101,13 +101,14 @@
 #define BMI160_ERR_REG 0x02
 #define BMI160_CHIP_ID 0x00
 #define BMI160_CHIP_ID_DEFAULT_VALUE 0xD1
+#define BMI160_DEFAULT_ADDRESS 0x69
 
 class BMI160 : public IMUBase {
 public:
 	explicit BMI160(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = BMI160_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

@@ -139,14 +139,14 @@
 #define MPU9255_YA_OFFSET_L      0x7B
 #define MPU9255_ZA_OFFSET_H      0x7D
 #define MPU9255_ZA_OFFSET_L      0x7E
-
+#define MPU9255_DEFAULT_ADDRESS 0x68
 
 class MPU9255 : public IMUBase {
 public:
 	explicit MPU9255(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = MPU9255_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

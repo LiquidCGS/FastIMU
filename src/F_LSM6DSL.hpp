@@ -54,12 +54,14 @@
 #define LSM6DSL_WHOAMI_DEFAULT_VALUE_A	0x6A
 #define LSM6DSL_WHOAMI_DEFAULT_VALUE_B	0x6B
 
+#define LSM6DSL_DEFAULT_ADDRESS 0x6B
+
 class LSM6DSL : public IMUBase {
 public:
 	explicit LSM6DSL(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = LSM6DSL_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

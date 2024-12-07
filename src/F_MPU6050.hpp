@@ -68,13 +68,14 @@
 #define MPU6050_WHO_AM_I_MPU6050 0x75 // Should return 0x68
 #define MPU6050_WHOAMI_DEFAULT_VALUE 0x68
 
+#define MPU6050_DEFAULT_ADDRESS 0x68
 
 class MPU6050 : public IMUBase {
 public:
 	explicit MPU6050(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = MPU6050_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

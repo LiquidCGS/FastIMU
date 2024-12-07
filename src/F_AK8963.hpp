@@ -30,6 +30,7 @@
 #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
+#define AK8963_DEFAULT_ADDRESS 0x0C
 
 
 class AK8963 : public IMUBase {
@@ -37,7 +38,7 @@ public:
 	explicit AK8963(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = AK8963_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

@@ -2,7 +2,7 @@
 
 //Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
 
-int ICM20689::init(calData cal, uint8_t address) 
+int ICM20689::init(calData cal, uint8_t address = ICM20689_DEFAULT_ADDRESS)
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;

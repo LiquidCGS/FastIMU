@@ -35,6 +35,7 @@
 #define AK09918_HOFL_BIT    0x08    // Sensor Over Flow
 #define AK09918_DOR_BIT     0x02    // Data Over Run
 #define AK09918_DRDY_BIT    0x01    // Data Ready
+#define AK09918_DEFAULT_ADDRESS 0x0C
 
 enum AK09918_mode_type_t {
     AK09918_POWER_DOWN = 0x00,
@@ -62,7 +63,7 @@ public:
 	explicit AK09918(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = AK09918_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

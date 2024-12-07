@@ -138,13 +138,14 @@
 #define MPU6500_ZA_OFFSET_H      0x7D
 #define MPU6500_ZA_OFFSET_L      0x7E
 
+#define MPU6500_DEFAULT_ADDRESS 0x68
 
 class MPU6500 : public IMUBase {
 public:
 	explicit MPU6500(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = MPU6500_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override;

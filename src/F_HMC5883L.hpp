@@ -26,13 +26,14 @@
 #define HMC5883L_IDC		0x0C
 
 #define HMC5883L_WHOAMI_VALUE	0x33
+#define HMC5883L_DEFAULT_ADDRESS 0x1E
 
 class HMC5883L : public IMUBase {
 public:
 	explicit HMC5883L(TwoWire& wire = Wire) : wire(wire) {};
 
 	// Inherited via IMUBase
-	int init(calData cal, uint8_t address) override;
+	int init(calData cal, uint8_t address = HMC5883L_DEFAULT_ADDRESS) override;
 
 	void update() override;
 	void getAccel(AccelData* out) override {};

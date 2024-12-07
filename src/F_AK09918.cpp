@@ -1,7 +1,7 @@
 #include "F_AK09918.hpp"
 
 
-int AK09918::init(calData cal, uint8_t address) 
+int AK09918::init(calData cal, uint8_t address = AK09918_DEFAULT_ADDRESS)
 {
 	if (cal.valid == false) 
 	{
