@@ -9,7 +9,7 @@ int QMI8658::init(calData cal, uint8_t address = QMI8658_DEFAULT_ADDRESS)
 
 	if (cal.valid == false) 
 	{
-		calibration = { 0 };
+		calibration = {0, {0,0,0},{0,0,0},{0,0,0},{0,0,0}};
 	}
 	else
 	{

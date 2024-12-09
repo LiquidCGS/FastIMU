@@ -87,8 +87,8 @@ private:
 	int geometryIndex = 0;
 
 	float temperature = 0.f;
-	AccelData accel = { 0 };
-	GyroData gyro = { 0 };
+	AccelData accel = { 0, 0, 0 };
+	GyroData gyro = { 0, 0, 0 };
 
 	calData calibration;
 

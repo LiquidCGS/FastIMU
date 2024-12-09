@@ -9,7 +9,7 @@ int ICM20690::init(calData cal, uint8_t address = ICM20690_DEFAULT_ADDRESS)
 
 	if (cal.valid == false) 
 	{
-		calibration = { 0 };
+		calibration = {0, {0,0,0},{0,0,0},{0,0,0},{0,0,0}};
 	}
 	else
 	{

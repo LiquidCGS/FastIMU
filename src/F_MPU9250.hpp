@@ -193,8 +193,8 @@ private:
 
 	int geometryIndex = 0;
 	float temperature = 0.f;
-	AccelData accel = { 0 };
-	GyroData gyro = { 0 };
+	AccelData accel = { 0, 0, 0 };
+	GyroData gyro = { 0, 0, 0 };
 
 	AK8963 mag;
 
@@ -203,7 +203,7 @@ private:
 
 	TwoWire& wire;
 
-	float factoryMagCal[3] = { 0 };
+	float factoryMagCal[3] = { 0, 0, 0 };
 
 	bool dataAvailable(){ return (readByteI2C(wire, IMUAddress, MPU9250_INT_STATUS) & 0x01);}
 };

@@ -9,7 +9,7 @@ int MPU6050::init(calData cal, uint8_t address = MPU6050_DEFAULT_ADDRESS)
 
 	if (cal.valid == false) 
 	{
-		calibration = { 0 };
+		calibration = {0, {0,0,0},{0,0,0},{0,0,0},{0,0,0}};
 	}
 	else
 	{

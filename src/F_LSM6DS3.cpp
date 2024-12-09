@@ -9,7 +9,7 @@ int LSM6DS3::init(calData cal, uint8_t address = LSM6DS3_DEFAULT_ADDRESS)
 
 	if (cal.valid == false) 
 	{
-		calibration = { 0 };
+		calibration = {0, {0,0,0},{0,0,0},{0,0,0},{0,0,0}};
 	}
 	else
 	{
