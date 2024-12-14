@@ -2,7 +2,7 @@
 
 //Original code: https://github.com/hideakitai/MPU9250/blob/master/MPU9250.h
 
-int MPU6050::init(calData cal, uint8_t address = MPU6050_DEFAULT_ADDRESS) 
+int MPU6050::init(calData cal, uint8_t address) 
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;
