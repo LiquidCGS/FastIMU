@@ -1,6 +1,6 @@
 #include "F_BMX055.hpp"
 
-int BMX055::init(calData cal, uint8_t address = BMX055_DEFAULT_ADDRESS)
+int BMX055::init(calData cal, uint8_t address)
 {
 	//initialize address variable and calibration data.
 

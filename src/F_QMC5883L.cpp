@@ -1,6 +1,6 @@
 #include "F_QMC5883L.hpp"
 
-int QMC5883L::init(calData cal, uint8_t address = QMC5883L_DEFAULT_ADDRESS)
+int QMC5883L::init(calData cal, uint8_t address)
 {
 	IMUAddress = address;
 	//check sensor
