@@ -1,6 +1,6 @@
 #include "F_HMC5883L.hpp"
 
-int HMC5883L::init(calData cal, uint8_t address = HMC5883L_DEFAULT_ADDRESS)
+int HMC5883L::init(calData cal, uint8_t address)
 {
 	IMUAddress = address;
 	//check sensor

@@ -2,7 +2,7 @@
 
 //Original code: https://github.com/hideakitai/IMU_Generic/blob/master/IMU_Generic.h
 
-int IMU_Generic::init(calData cal, uint8_t address = IMU_Generic_DEFAULT_ADDRESS)
+int IMU_Generic::init(calData cal, uint8_t address)
 {
 	//initialize address variable and calibration data.
 	IMUAddress = address;
