@@ -10,7 +10,7 @@ int HMC5883L::init(calData cal, uint8_t address)
 	//load cal
 	if (cal.valid == false) 
 	{
-		calibration = { 0 };
+		calibration = {0, {0,0,0},{0,0,0},{0,0,0},{0,0,0}};
 		calibration.magScale[0] = 1.f;
 		calibration.magScale[1] = 1.f;
 		calibration.magScale[2] = 1.f;
