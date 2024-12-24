@@ -51,7 +51,7 @@ IMU_HYBRID<IMUType, MAGType>::~IMU_HYBRID() {
 
 template <typename IMUType, typename MAGType>
 int IMU_HYBRID<IMUType, MAGType>::init(calData cal, uint8_t address) {
-	int e = IMU->init(cal);
+	int e = IMU->init(cal, address);
 	if (e) return e;
 	e = MAG->init(cal);
 	if (e) return -2;
