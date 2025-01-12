@@ -53,6 +53,7 @@
 
 #define LSM6DS3_WHOAMI_DEFAULT_VALUE	0x69
 #define LSM6DS3TR_C_WHOAMI_DEFAULT_VALUE 0x6A
+#define LSM6DSO_WHOAMI_DEFAULT_VALUE 0x6C
 
 #define LSM6DS3_DEFAULT_ADDRESS 0x6B
 
@@ -109,7 +110,7 @@ private:
 	uint8_t IMUAddress;
 
 	TwoWire& wire;
-	
+
 	uint8_t checkReady(uint8_t address, uint8_t timeout)
 	{
 		uint8_t IMUWhoAmI = 0;
