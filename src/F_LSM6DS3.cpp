@@ -7,7 +7,7 @@ int LSM6DS3::init(calData cal, uint8_t address)
 	//initialize address variable and calibration data.
 	IMUAddress = address;
 
-	if (cal.valid == false) 
+	if (cal.valid == false)
 	{
 		calibration = { 0 };
 	}
@@ -15,8 +15,8 @@ int LSM6DS3::init(calData cal, uint8_t address)
 	{
 		calibration = cal;
 	}
-	
-	uint8_t IMUWhoAmI = checkReady(IMUAddress, 500);
+
+	uint8_t IMUWhoAmI = checkReady(IMUAddress, 100);
 	if (!(IMUWhoAmI == LSM6DS3_WHOAMI_DEFAULT_VALUE)) {
 		if (!(IMUWhoAmI == LSM6DS3TR_C_WHOAMI_DEFAULT_VALUE)) {
 			return -1;
@@ -26,7 +26,7 @@ int LSM6DS3::init(calData cal, uint8_t address)
 	// reset device
 	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
 	while (!checkReady(IMUAddress, 100));			// wait for reset
-	
+
 	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x47);	// Start up accelerometer, set range to +-16g, set output data rate to 104hz, BW_XL bits to 11.
 	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0x4C);	// Start up gyroscope, set range to -+2000dps, output data rate to 104hz.
 	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL4_C, 0x80);	// Set XL_BW_SCAL_ODR;
