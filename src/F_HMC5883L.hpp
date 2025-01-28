@@ -71,7 +71,7 @@ public:
 private:
 	float mRes = 10. * 819.2f / 2048.f;				//mRes value for full range (+-819.2uT scaled * 10) readings (12 bit)
 	int geometryIndex = 0;
-	MagData mag = { 0 };
+	MagData mag = { 0, 0, 0 };
 
 	calData calibration;
 	uint8_t IMUAddress;

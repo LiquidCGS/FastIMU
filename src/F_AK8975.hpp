@@ -77,14 +77,14 @@ private:
 
 	int geometryIndex = 0;
 	float temperature = 0.f;
-	MagData mag = { 0 };
+	MagData mag = { 0, 0, 0 };
 
 	calData calibration;
 	uint8_t IMUAddress;
 
 	TwoWire& wire;
 
-	float factoryMagCal[3] = { 0 };
+	float factoryMagCal[3] = { 0, 0, 0 };
 
 	bool dataAvailable()
 	{ 
