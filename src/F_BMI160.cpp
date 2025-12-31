@@ -111,8 +111,8 @@ void BMI160::update() {
 
 	uint8_t buf[2];
 	readBytesI2C(wire, IMUAddress, BMI160_TEMPERATURE_0, 2, &buf[0]);
-	float temp = ((((int16_t)buf[1]) << 8) | buf[0]);
-	temperature = (temp / 512) + 23.f;
+	int16_t raw = ((uint16_t)buf[1] << 8 | (uint16_t)buf[0]); // MSB<<8 | LSB
+	temperature = (float)raw / 512.0f + 23.0f;
 }
 
 void BMI160::getAccel(AccelData* out)
