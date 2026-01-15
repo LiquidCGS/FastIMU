@@ -117,6 +117,10 @@ public:
 	void getQuat(Quaternion* out) override {};
 	float getTemp() override { return temperature; };
 
+	int setAccelODR(uint8_t odr);		// Set accel ODR: 0x06=25Hz, 0x0A=400Hz, 0x0C=1600Hz
+	int setGyroODR(uint8_t odr);		// Set gyro ODR: 0x06=25Hz, 0x0A=400Hz, 0x0C=1600Hz, 0x0D=3200Hz
+	int setAccelBandwidth(uint8_t bwp); // Set accel bandwidth: 0=normal, 1=RES_OSR4
+	int setGyroBandwidth(uint8_t bwp);	// Set gyro bandwidth/OSR: 0=OSR4, 1=OSR2, 2=normal, 3=CIC
 	int setGyroRange(int range) override;
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
