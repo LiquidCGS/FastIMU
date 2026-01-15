@@ -278,3 +278,66 @@ void BMI160::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[2] = (float)gyro_bias[2];
 	cal->valid = true;
 }
+
+int BMI160::setAccelODR(uint8_t odr)
+{
+	// BMI160 accel ODR encoding in ACC_CONF[3:0]:
+	// 0x06 = 25 Hz,  0x07 = 50 Hz,  0x08 = 100 Hz, 0x09 = 200 Hz
+	// 0x0A = 400 Hz, 0x0B = 800 Hz, 0x0C = 1600 Hz
+	if (odr < 0x06 || odr > 0x0C)
+	{
+		return -1; // Invalid ODR code
+	}
+
+	uint8_t c = readByteI2C(wire, IMUAddress, BMI160_ACC_CONF);
+	c = (c & 0xF0) | (odr & 0x0F); // Clear [3:0], set new ODR
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, c);
+	return 0;
+}
+
+int BMI160::setGyroODR(uint8_t odr)
+{
+	// BMI160 gyro ODR encoding in GYR_CONF[3:0]:
+	// 0x06 = 25 Hz,  0x07 = 50 Hz,  0x08 = 100 Hz, 0x09 = 200 Hz
+	// 0x0A = 400 Hz, 0x0B = 800 Hz, 0x0C = 1600 Hz, 0x0D = 3200 Hz (gyro only)
+	if (odr < 0x06 || odr > 0x0D)
+	{
+		return -1; // Invalid ODR code
+	}
+
+	uint8_t c = readByteI2C(wire, IMUAddress, BMI160_GYR_CONF);
+	c = (uint8_t)((c & 0xF0) | (odr & 0x0F)); // Clear [3:0], set new ODR
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, c);
+	return 0;
+}
+
+int BMI160::setAccelBandwidth(uint8_t bwp)
+{
+	// BMI160 accel bandwidth/OSR in ACC_CONF[6:4]:
+	// 0x00 = OSR4 (low noise), 0x01 = OSR2, 0x02 = Normal, 0x03 = CIC, ...
+	// Consult the datasheet/driver for the exact enumeration you want to expose.
+	if (bwp > 0x07)
+	{
+		return -1; // Only 3 bits
+	}
+
+	uint8_t c = readByteI2C(wire, IMUAddress, BMI160_ACC_CONF);
+	c = (uint8_t)((c & 0x8F) | ((bwp & 0x07) << 4)); // clear [6:4], set new BWP
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, c);
+	return 0;
+}
+
+int BMI160::setGyroBandwidth(uint8_t bwp)
+{
+	// BMI160 gyro bandwidth/OSR in GYR_CONF[5:4]:
+	// 0x00 = OSR4 (low noise), 0x01 = OSR2, 0x02 = Normal mode, 0x03 = CIC mode
+	if (bwp > 0x03)
+	{
+		return -1; // Invalid bandwidth parameter
+	}
+
+	uint8_t c = readByteI2C(wire, IMUAddress, BMI160_GYR_CONF);
+	c = (c & 0x0F) | ((bwp & 0x03) << 4); // Preserve ODR bits [3:0], set bits [5:4]
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, c);
+	return 0;
+}
