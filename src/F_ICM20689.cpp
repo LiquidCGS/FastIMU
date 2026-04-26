@@ -54,7 +54,7 @@ int ICM20689::init(calData cal, uint8_t address)
 	writeByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG, c); // Write new GYRO_CONFIG value to register
 
 	// Set accelerometer full-scale range configuration
-	c = readByteI2C(wire, address, ICM20689_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+	c = readByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
 	// c = c & ~0xE0; // Clear self-test bits [7:5]
 	c = c & ~0x18;  // Clear AFS bits [4:3]
 	c = c | (uint8_t)3 << 3; // Set full scale range for the accelerometer (11 on 4:3)
