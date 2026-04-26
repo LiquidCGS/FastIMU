@@ -364,9 +364,9 @@ void BMX055::calibrateMag(calData* cal)
 		MagCount[1] = ((rawDataMag[3] << 8) | (rawDataMag[2] & 0xF8)) >> 3;
 		MagCount[2] = ((rawDataMag[5] << 8) | (rawDataMag[4] & 0xFE)) >> 1;	      // Turn the MSB and LSB into a signed 15-bit value
 
-		magReading[1] = (float)(MagCount[0] * mResXY);
-		magReading[2] = (float)(MagCount[1] * mResXY);
-		magReading[3] = (float)(MagCount[2] * mResZ);
+		magReading[0] = (float)(MagCount[0] * mResXY);
+		magReading[1] = (float)(MagCount[1] * mResXY);
+		magReading[2] = (float)(MagCount[2] * mResZ);
 
 		for (int jj = 0; jj < 3; jj++)
 		{
