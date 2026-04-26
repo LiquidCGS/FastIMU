@@ -106,7 +106,7 @@ void AK8975::update() {
 	}
 	else
 	{
-		if(!readByteI2C(wire, AK8975_ADDRESS, AK8975_CNTL) & 0x01){
+		if(!(readByteI2C(wire, AK8975_ADDRESS, AK8975_CNTL) & 0x01)){
 			writeByteI2C(wire, AK8975_ADDRESS, AK8975_CNTL, 0x01); // Set magnetometer to single measure mode.
 		}
 	}

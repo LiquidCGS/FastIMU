@@ -255,8 +255,8 @@ void MPU6886::calibrateAccelGyro(calData* cal)
 	delay(40); // accumulate 40 samples in 40 milliseconds = 480 bytes
 
 	// At end of sample accumulation, turn off FIFO sensor read
-	readBytesI2C(wire, IMUAddress, MPU6886_FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
 	writeByteI2C(wire, IMUAddress, MPU6886_FIFO_EN, 0x00);        // Disable gyro and accelerometer sensors for FIFO
+	readBytesI2C(wire, IMUAddress, MPU6886_FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
 	fifo_count = ((uint16_t)data[0] << 8) | data[1];
 	packet_count = fifo_count / 12;// How many sets of full gyro and accelerometer data for averaging
 

@@ -92,7 +92,7 @@ void AK09918::update() {
 	}
 	else
 	{
-		if(!readByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2) & 0x01){
+		if(!(readByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2) & 0x01)){
 			writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, 0x01); // Set magnetometer to single measure mode.
 		}
 	}

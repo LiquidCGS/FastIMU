@@ -35,7 +35,7 @@ int QMI8658::init(calData cal, uint8_t address)
 	delay(100);								    	// wait until they're done starting up...
 
 	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 2048.f / 32768.f;	    //gres value for full range (2000dps) readings
+	gRes = 2048.f / 32768.f;	    //gres value for full range (2048dps) readings
 
 	return 0;
 }

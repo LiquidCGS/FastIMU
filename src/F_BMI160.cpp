@@ -168,7 +168,7 @@ int BMI160::setGyroRange(int range) {
 		c = 0x03;
 	}
 	else if (range == 125){
-		gRes = 125.f / 32768.f;			//ares value for range (250dps) readings
+		gRes = 125.f / 32768.f;			//ares value for range (125dps) readings
 		c = 0x04;
 	}
 	else {

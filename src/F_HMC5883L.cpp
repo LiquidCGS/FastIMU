@@ -33,7 +33,7 @@ int HMC5883L::init(calData cal, uint8_t address)
 
 void HMC5883L::update()
 {
-	if (!(readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x01) && (readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x02)) {
+	if (!(readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x01) || (readByteI2C(wire, IMUAddress, HMC5883L_STATUS) & 0x02)) {
 		mag.magX = 0.f;
 		mag.magY = 0.f;
 		mag.magZ = 0.f;
