@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <avr/pgmspace.h>
 // Similar to https://github.com/Levi--G/IMU-WhoAmIVerifier
 
 //Do be aware that MPU9150's will report as 6050s, this is because a 9150 is a 6050 with a magnetometer
@@ -16,12 +17,12 @@ typedef struct IMU {
   uint8_t Address2;
   uint8_t Register;
   uint8_t ExpectedID;
-  const char*  IMUName PROGMEM;
-  const char*  IMUCapabilities PROGMEM;
+  const char*  IMUName;
+  const char*  IMUCapabilities;
   bool    LibSupported;
 };
 
-const IMU IMUList[NUM_IMUS] =
+const IMU IMUList[NUM_IMUS] PROGMEM =
 {
   {0x68, 0x69, 0x75, 0x68, "MPU6050",   "3A,3G",	true},
   {0x68, 0x69, 0x75, 0x70, "MPU6500",   "3A,3G",	true},
@@ -36,6 +37,7 @@ const IMU IMUList[NUM_IMUS] =
   {0x6B, 0x6A, 0x0F, 0x6A, "LSM6DSL or LSM6DS3TR-C",   "3A,3G",	true},
   {0x68, 0x69, 0x75, 0x98, "ICM20689",  "3A,3G",	true},
   {0x68, 0x69, 0x75, 0x20, "ICM20690",  "3A,3G",	true},
+  {0x68, 0x69, 0x00, 0xEA, "ICM20948",  "3A,3G,3M",	true},
   {0x6B, 0x6A, 0x00, 0x05, "QMI8658",   "3A,3G",	true},
   {0x18, 0x19, 0x00, 0xFA, "BMI055 or BMX055", "3A,3G or 3A,3G,3M", true},
   {0x1E, 0x1E, 0x0C, 0x33, "HMC5883L",   "3M",		true},
@@ -61,7 +63,6 @@ const IMU IMUList[NUM_IMUS] =
   {0x68, 0x69, 0x00, 0xE1, "ICM20649",  "3A,3G",	false},
   {0x68, 0x69, 0x75, 0xA9, "ICG20660",  "3A,3G",	false},
   {0x68, 0x69, 0x75, 0x91, "IAM20680",  "3A,3G",	false},
-  {0x68, 0x69, 0x00, 0xEA, "ICM20948",  "3A,3G,3M",	false},
   {0x68, 0x69, 0x75, 0x6C, "IIM42351",  "3A",		false},
   {0x68, 0x69, 0x75, 0x6D, "IIM42352",  "3A",		false},
   {0x68, 0x69, 0x75, 0x4E, "ICM40627",  "3A,3G",	false},
@@ -71,6 +72,12 @@ const IMU IMUList[NUM_IMUS] =
   {0x68, 0x69, 0x75, 0xDB, "ICM42688-V", "3A,3G",	false},
   {0x68, 0x69, 0x00, 0x68, "MPU3050",   "3G",		false}
 };
+
+static inline IMU getIMU(uint8_t i) {
+  IMU tmp;
+  memcpy_P(&tmp, &IMUList[i], sizeof(IMU));
+  return tmp;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -101,10 +108,11 @@ void loop() {
   bool detected = false;
   for (int i = 0; i < NUM_IMUS; i++)
   {
+    IMU imu = getIMU(i);
 #ifdef WIRE_HAS_TIMEOUT
     if (errorflag || Wire.getWireTimeoutFlag()) {
       Serial.print(F("Error while reading address 0x"));
-      Serial.print(IMUList[i].Address1, HEX);
+      Serial.print(imu.Address1, HEX);
       Serial.print(F(": "));
       if (Wire.getWireTimeoutFlag()) {
         Serial.println(F("I2C bus timed out. (Bad IMU? check wiring.)"));
@@ -119,16 +127,16 @@ void loop() {
       return;
     }
 #endif
-    if (readByte(IMUList[i].Address1, IMUList[i].Register) == IMUList[i].ExpectedID)
+    if (readByte(imu.Address1, imu.Register) == imu.ExpectedID)
     {
       detected = true;
       Serial.print(F("IMU Found: "));
-      Serial.print(IMUList[i].IMUName);
+      Serial.print(imu.IMUName);
       Serial.print(F(" On address: 0x"));
-      Serial.println(IMUList[i].Address1, HEX);
+      Serial.println(imu.Address1, HEX);
       Serial.print(F("This IMU is capable of the following axis: "));
-      Serial.println(IMUList[i].IMUCapabilities);
-      if (IMUList[i].LibSupported) {
+      Serial.println(imu.IMUCapabilities);
+      if (imu.LibSupported) {
         Serial.println(F("This IMU is supported by the FastIMU library."));
       }
       else
@@ -137,21 +145,21 @@ void loop() {
       }
       Serial.println(F("======================================"));
     }
-    else if (readByte(IMUList[i].Address2, IMUList[i].Register) == IMUList[i].ExpectedID)
+    else if (readByte(imu.Address2, imu.Register) == imu.ExpectedID)
     {
       detected = true;
       Serial.print(F("IMU Found: "));
-      Serial.print(IMUList[i].IMUName);
+      Serial.print(imu.IMUName);
       Serial.print(F(" On address: 0x"));
-      Serial.println(IMUList[i].Address2, HEX);
+      Serial.println(imu.Address2, HEX);
       Serial.print(F("This IMU is capable of the following axis: "));
-      Serial.println(IMUList[i].IMUCapabilities);
-      if (IMUList[i].LibSupported) {
+      Serial.println(imu.IMUCapabilities);
+      if (imu.LibSupported) {
         Serial.println(F("This IMU is supported by the FastIMU library."));
       }
       else
       {
-        Serial.println(F(" This IMU is not supported by the FastIMU library."));
+        Serial.println(F("This IMU is not supported by the FastIMU library."));
       }
       Serial.println(F("======================================"));
     }

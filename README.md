@@ -10,7 +10,8 @@
 * MPU6500 
 * MPU6050
 * ICM20689 
-* ICM20690 
+* ICM20690
+* ICM20948 
 * BMI055 
 * BMX055 (Magnetometer currently untested)
 * BMI160
@@ -24,6 +25,7 @@
 * AK8975
 * AK8963
 * AK09918
+* BMM150
 
 ### Using non default I2C ports:
 If you're planning on using an IMU on a non-default I2C port, you can specify the port in the constructor of your IMU, for example:
@@ -49,9 +51,7 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 ### Planned:
 * BNO080 (probably soonish)
 * GY-85
-* BMM150 
 * BNO055 (the one I bought is DOA... might take a bit)
-* ICM20948 
 * BMI270 (if I can get my hands on one)
 
 ### Data types
@@ -108,6 +108,7 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 
 ![2](MountIndex.png)
 
+##### TODO: VQF? built in filters?
 ##### TODO: get DMP working for pure quaternion output from invsense IMU's
 ##### TODO: get FIFO working for all IMU's that have it.
 ##### TODO: get timestamping working 

@@ -10,6 +10,7 @@
 #include "F_MPU6050.hpp"
 #include "F_ICM20689.hpp"
 #include "F_ICM20690.hpp"
+#include "F_ICM20948.hpp"
 #include "F_BMI055.hpp"
 #include "F_BMM150.hpp"
 #include "F_BMX055.hpp"
