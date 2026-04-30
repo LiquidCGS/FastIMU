@@ -17,7 +17,7 @@ int LSM6DSL::init(calData cal, uint8_t address)
 	}
 	
 	// Wait up to 100ms for IMU to become ready.
-	uint8_t IMUWhoAmI = checkReady(IMUAddress, 500);
+	uint8_t IMUWhoAmI = checkReady(IMUAddress, 100);
 	if (!(IMUWhoAmI == LSM6DSL_WHOAMI_DEFAULT_VALUE_A) && !(IMUWhoAmI == LSM6DSL_WHOAMI_DEFAULT_VALUE_B)) {
 		return -1;
 	}
