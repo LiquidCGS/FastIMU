@@ -8,18 +8,21 @@ struct AccelData {
 	float accelX;
 	float accelY;
 	float accelZ;
+	uint32_t timestamp;
 };
 
 struct GyroData {
 	float gyroX;
 	float gyroY;
 	float gyroZ;
+	uint32_t timestamp;
 };
 
 struct MagData {
 	float magX;
 	float magY;
 	float magZ;
+	uint32_t timestamp;
 };
 
 struct Quaternion {
@@ -27,6 +30,7 @@ struct Quaternion {
 	float qX;
 	float qY;
 	float qZ;
+	uint32_t timestamp;
 };
 
 struct calData {
@@ -42,6 +46,7 @@ public:
 	virtual ~IMUBase() {}
 
 	virtual int init(calData cal, uint8_t address = 0x00) = 0;
+
 	virtual void update() = 0;
 
 	virtual void getAccel(AccelData* out) = 0;
