@@ -180,3 +180,25 @@ void AK09918::calibrateMag(calData* cal)
 	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
 	cal->magScale[2] = avg_rad / ((float)mag_scale[2]);
 }
+
+// AK09918 continuous mode ODR options: 10, 20, 50, 100 Hz
+static const int AK09918_ODR_TABLE[] = {10, 20, 50, 100};
+static const uint8_t AK09918_ODR_MODE[] = {
+	AK09918_CONTINUOUS_10HZ,
+	AK09918_CONTINUOUS_20HZ,
+	AK09918_CONTINUOUS_50HZ,
+	AK09918_CONTINUOUS_100HZ
+};
+
+int AK09918::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(AK09918_ODR_TABLE, 4, odr_hz);
+	int idx = 0;
+	while (AK09918_ODR_TABLE[idx] != actual) idx++;
+	writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, AK09918_POWER_DOWN);
+	delay(10);
+	writeByteI2C(wire, AK09918_ADDRESS, AK09918_CNTL2, AK09918_ODR_MODE[idx]);
+	delay(10);
+	currentMagODR = actual;
+	return actual;
+}

@@ -61,38 +61,39 @@ int BMI055::init(calData cal, uint8_t address)
 
 void BMI055::update()
 {
-	int16_t AccelCount[3];                                        // used to read all 6 bytes at once from the BMI055 accel
-	int16_t GyroCount[3];										  // used to read all 6 bytes at once from the BMI055 gyro
-	uint8_t rawDataAccel[7];                                          // x/y/z accel register data stored here
+	bool accelReady = readByteI2C(wire, AccelAddress, BMI055_ACCD_X_LSB) & 0x01;
+	bool gyroReady  = readByteI2C(wire, GyroAddress,  BMI055_GYR_INT_STATUS_0) & 0x80;
+	if (!accelReady && !gyroReady) return;
+
+	int16_t AccelCount[3] = {0};
+	int16_t GyroCount[3]  = {0};
+	uint8_t rawDataAccel[7];
 	uint8_t rawDataGyro[6];
 
-	readBytesI2C(wire, AccelAddress, BMI055_ACCD_X_LSB, 7, &rawDataAccel[0]);       // Read the 7 raw accelerometer data registers into data array
-	accel.timestamp = micros();
-	
-	readBytesI2C(wire, GyroAddress, BMI055_GYR_RATE_X_LSB , 6, &rawDataGyro[0]);   // Read the 6 raw gyroscope data registers into data array
-	gyro.timestamp = micros();
+	if (accelReady) {
+		readBytesI2C(wire, AccelAddress, BMI055_ACCD_X_LSB, 7, &rawDataAccel[0]);
+		accel.timestamp = micros();
+		AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;
+		AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;
+		AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
+		temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;
+	}
 
-	//accel registers
-	AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;		  // Turn the MSB and LSB into a signed 12-bit value
-	AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;	      // praise sign extension, making this code clean and simple.
-	AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
+	if (gyroReady) {
+		readBytesI2C(wire, GyroAddress, BMI055_GYR_RATE_X_LSB, 6, &rawDataGyro[0]);
+		gyro.timestamp = micros();
+		GyroCount[0] = (rawDataGyro[1] << 8) | rawDataGyro[0];
+		GyroCount[1] = (rawDataGyro[3] << 8) | rawDataGyro[2];
+		GyroCount[2] = (rawDataGyro[5] << 8) | rawDataGyro[4];
+	}
 
-	//gyro registers
-	GyroCount[0] = (rawDataGyro[1] << 8) | (rawDataGyro[0]);
-	GyroCount[1] = (rawDataGyro[3] << 8) | (rawDataGyro[2]);
-	GyroCount[2] = (rawDataGyro[5] << 8) | (rawDataGyro[4]);
+	float ax = AccelCount[0] * (float)aRes - calibration.accelBias[0];
+	float ay = AccelCount[1] * (float)aRes - calibration.accelBias[1];
+	float az = AccelCount[2] * (float)aRes - calibration.accelBias[2];
 
-	float ax, ay, az, gx, gy, gz;
-
-	// Calculate the accel value into actual g's per second
-	ax = AccelCount[0] * (float)aRes - calibration.accelBias[0];
-	ay = AccelCount[1] * (float)aRes - calibration.accelBias[1];
-	az = AccelCount[2] * (float)aRes - calibration.accelBias[2];
-
-	// Calculate the gyro value into actual degrees per second
-	gx = GyroCount[0] * (float)gRes - calibration.gyroBias[0];
-	gy = GyroCount[1] * (float)gRes - calibration.gyroBias[1];
-	gz = GyroCount[2] * (float)gRes - calibration.gyroBias[2];
+	float gx = GyroCount[0] * (float)gRes - calibration.gyroBias[0];
+	float gy = GyroCount[1] * (float)gRes - calibration.gyroBias[1];
+	float gz = GyroCount[2] * (float)gRes - calibration.gyroBias[2];
 
 	switch (geometryIndex) {
 	case 0:
@@ -136,8 +137,6 @@ void BMI055::update()
 		accel.accelZ = ay;		gyro.gyroZ = gy;
 		break;
 	}
-	// Calculate the temperature value into actual deg c
-	temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;
 }
 
 void BMI055::getAccel(AccelData* out) 
@@ -306,4 +305,32 @@ void BMI055::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[1] = (float)gyro_bias[1];
 	cal->gyroBias[2] = (float)gyro_bias[2];
 	cal->valid = true;
+}
+
+// Accel ODR = 2 × bandwidth. PMU_BW values 0x08-0x0F give BW 7.81-1000 Hz.
+static const int BMI055_ACCEL_ODR_TABLE[] = {15, 31, 62, 125, 250, 500, 1000, 2000};
+static const uint8_t BMI055_ACCEL_BW_REG[] = {0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+
+// Gyro: distinct ODR values with highest available bandwidth for each.
+static const int BMI055_GYRO_ODR_TABLE[] = {100, 200, 400, 1000};
+static const uint8_t BMI055_GYRO_BW_REG[] = {0x07, 0x06, 0x00, 0x01};
+
+int BMI055::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMI055_ACCEL_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (BMI055_ACCEL_ODR_TABLE[idx] != actual) idx++;
+	writeByteI2C(wire, AccelAddress, BMI055_PMU_BW, BMI055_ACCEL_BW_REG[idx]);
+	currentAccelODR = actual;
+	return actual;
+}
+
+int BMI055::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMI055_GYRO_ODR_TABLE, 4, odr_hz);
+	int idx = 0;
+	while (BMI055_GYRO_ODR_TABLE[idx] != actual) idx++;
+	writeByteI2C(wire, GyroAddress, BMI055_GYR_BW, BMI055_GYRO_BW_REG[idx]);
+	currentGyroODR = actual;
+	return actual;
 }

@@ -34,8 +34,8 @@ int QMI8658::init(calData cal, uint8_t address)
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	delay(100);								    	// wait until they're done starting up...
 
-	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 2048.f / 32768.f;	    //gres value for full range (2048dps) readings
+	aRes = 2.f / 32768.f;			//ares value for full range (16g) readings
+	gRes = 128.f / 32768.f;	    //gres value for full range (2048dps) readings
 
 	return 0;
 }
@@ -283,4 +283,32 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[1] = (float)gyro_bias[1];
 	cal->gyroBias[2] = (float)gyro_bias[2];
 	cal->valid = true;
+}
+
+// Ascending ODR table (same encoding for both accel and gyro).
+// Accel ODR field: CTRL2 bits[6:4]. Gyro ODR field: CTRL3 bits[7:5].
+static const int QMI8658_ODR_TABLE[] = {62, 125, 250, 500, 1000, 2000, 4000, 8000};
+
+int QMI8658::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl = readByteI2C(wire, IMUAddress, QMI8658_CTRL2);
+	ctrl = (ctrl & 0x8F) | (uint8_t)(idx << 4);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, ctrl);
+	currentAccelODR = actual;
+	return actual;
+}
+
+int QMI8658::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl = readByteI2C(wire, IMUAddress, QMI8658_CTRL3);
+	ctrl = (ctrl & 0x1F) | (uint8_t)(idx << 5);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, ctrl);
+	currentGyroODR = actual;
+	return actual;
 }

@@ -59,6 +59,14 @@ public:
 	virtual int setAccelRange(int range) = 0;
 	virtual int setIMUGeometry(int index) = 0;
 
+	virtual int setAccelODR(int odr_hz) { return -1; }
+	virtual int setGyroODR(int odr_hz)  { return -1; }
+	virtual int getAccelODR()           { return -1; }
+	virtual int getGyroODR()            { return -1; }
+
+	virtual int setMagODR(int odr_hz)   { return -1; }
+	virtual int getMagODR()             { return -1; }
+
 	virtual void calibrateAccelGyro(calData* cal) = 0;
 	virtual void calibrateMag(calData* cal) = 0;
 
@@ -80,6 +88,12 @@ public:
 	}
 	virtual String IMUManufacturer(){
 		return "Unknown";
+	}
+
+	static int nearestHigherODR(const int* table, int count, int requested) {
+		for (int i = 0; i < count; i++)
+			if (table[i] >= requested) return table[i];
+		return table[count - 1];
 	}
 };
 

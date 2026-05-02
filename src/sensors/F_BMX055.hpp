@@ -35,6 +35,7 @@
 #define BMX055_GYR_RATE_Y_MSB    0x05
 #define BMX055_GYR_RATE_Z_LSB    0x06
 #define BMX055_GYR_RATE_Z_MSB    0x07
+#define BMX055_GYR_INT_STATUS_0  0x09
 #define BMX055_GYR_RANGE         0x0F
 #define BMX055_GYR_BW            0x10
 #define BMX055_GYR_LPM1          0x11
@@ -79,6 +80,9 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 
@@ -108,6 +112,7 @@ private:
 	float mResXY = 1300.f / 4096.f;			//mres value for full range (+-1300uT) 13 bit readings
 	float mResZ = 2500.f / 16384.f;			//mres value for full range (+-2500uT) 15 bit readings
 	int geometryIndex = 0;
+	int currentMagODR = 30;
 
 	float temperature = 0.f;
 	AccelData accel = { 0 };

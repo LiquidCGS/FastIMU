@@ -48,6 +48,9 @@ public:
 	int setAccelRange(int range) override { return -1; };
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	bool hasMagnetometer() override {
 		return true;
 	}
@@ -73,6 +76,7 @@ private:
 	float tRes = 100.f / 32768.f;			//tRes value for full range readings (16 bit)
 	float temperature = 0.f;
 	int geometryIndex = 0;
+	int currentMagODR = 200;
 	
 	AccelData accel = { 0 };
 	GyroData gyro = { 0 };

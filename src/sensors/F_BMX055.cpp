@@ -82,56 +82,55 @@ int BMX055::init(calData cal, uint8_t address)
 
 void BMX055::update()
 {
-	int16_t AccelCount[3];                                        // used to read all 6 bytes at once from the BMI055 accel
-	int16_t GyroCount[3];										  // used to read all 6 bytes at once from the BMI055 gyro
-	int16_t MagCount[3];										  // used to read all 6 bytes at once from the BMI055 mag
+	bool accelReady = readByteI2C(wire, AccelAddress, BMX055_ACCD_X_LSB) & 0x01;
+	bool gyroReady  = readByteI2C(wire, GyroAddress,  BMX055_GYR_INT_STATUS_0) & 0x80;
+	bool magReady   = readByteI2C(wire, MagAddress,   BMX055_MAG_RHALL_LSB_DRDY) & 0x01;
+	if (!accelReady && !gyroReady && !magReady) return;
 
-	uint8_t rawDataAccel[7];                                      // x/y/z accel register data stored here
-	uint8_t rawDataGyro[6];                                       // x/y/z gyro register data stored here
-	uint8_t rawDataMag[6];										  // x/y/z mag register data stored here
+	int16_t AccelCount[3] = {0};
+	int16_t GyroCount[3]  = {0};
+	int16_t MagCount[3]   = {0};
+	uint8_t rawDataAccel[7];
+	uint8_t rawDataGyro[6];
+	uint8_t rawDataMag[6];
 
-	readBytesI2C(wire, AccelAddress, BMX055_ACCD_X_LSB, 7, &rawDataAccel[0]);       // Read the 7 raw accelerometer data registers into data array
-	accel.timestamp = micros();
-	
-	readBytesI2C(wire, GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &rawDataGyro[0]);   // Read the 6 raw gyroscope data registers into data array
-	gyro.timestamp = micros();
+	if (accelReady) {
+		readBytesI2C(wire, AccelAddress, BMX055_ACCD_X_LSB, 7, &rawDataAccel[0]);
+		accel.timestamp = micros();
+		AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;
+		AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;
+		AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
+		temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;
+	}
 
-	readBytesI2C(wire, MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);   // Read the 6 raw magnetometer data registers into data array
-	mag.timestamp = micros();
+	if (gyroReady) {
+		readBytesI2C(wire, GyroAddress, BMX055_GYR_RATE_X_LSB, 6, &rawDataGyro[0]);
+		gyro.timestamp = micros();
+		GyroCount[0] = (rawDataGyro[1] << 8) | rawDataGyro[0];
+		GyroCount[1] = (rawDataGyro[3] << 8) | rawDataGyro[2];
+		GyroCount[2] = (rawDataGyro[5] << 8) | rawDataGyro[4];
+	}
 
-	//accel registers
-	AccelCount[0] = ((rawDataAccel[1] << 8) | (rawDataAccel[0] & 0xF0)) >> 4;		  // Turn the MSB and LSB into a signed 12-bit value
-	AccelCount[1] = ((rawDataAccel[3] << 8) | (rawDataAccel[2] & 0xF0)) >> 4;	      // praise sign extension, making this code clean and simple.
-	AccelCount[2] = ((rawDataAccel[5] << 8) | (rawDataAccel[4] & 0xF0)) >> 4;
+	if (magReady) {
+		readBytesI2C(wire, MagAddress, BMX055_MAG_X_LSB, 6, &rawDataMag[0]);
+		mag.timestamp = micros();
+		MagCount[0] = ((rawDataMag[1] << 8) | (rawDataMag[0] & 0xF8)) >> 3;
+		MagCount[1] = ((rawDataMag[3] << 8) | (rawDataMag[2] & 0xF8)) >> 3;
+		MagCount[2] = ((rawDataMag[5] << 8) | (rawDataMag[4] & 0xFE)) >> 1;
+	}
 
-	//gyro registers
-	GyroCount[0] = (rawDataGyro[1] << 8) | (rawDataGyro[0]);
-	GyroCount[1] = (rawDataGyro[3] << 8) | (rawDataGyro[2]);
-	GyroCount[2] = (rawDataGyro[5] << 8) | (rawDataGyro[4]);
+	float ax = AccelCount[0] * aRes - calibration.accelBias[0];
+	float ay = AccelCount[1] * aRes - calibration.accelBias[1];
+	float az = AccelCount[2] * aRes - calibration.accelBias[2];
 
-	//mag registers
-	MagCount[0] = ((rawDataMag[1] << 8) | (rawDataMag[0] & 0xF8)) >> 3;		  // Turn the MSB and LSB into a signed 13-bit value
-	MagCount[1] = ((rawDataMag[3] << 8) | (rawDataMag[2] & 0xF8)) >> 3;
-	MagCount[2] = ((rawDataMag[5] << 8) | (rawDataMag[4] & 0xFE)) >> 1;	      // Turn the MSB and LSB into a signed 15-bit value
+	float gx = GyroCount[0] * gRes - calibration.gyroBias[0];
+	float gy = GyroCount[1] * gRes - calibration.gyroBias[1];
+	float gz = GyroCount[2] * gRes - calibration.gyroBias[2];
 
-	float ax, ay, az, gx, gy, gz, mx, my, mz;
-	// Calculate the accel value into actual g's per second
-	ax = AccelCount[0] * aRes - calibration.accelBias[0];
-	ay = AccelCount[1] * aRes - calibration.accelBias[1];
-	az = AccelCount[2] * aRes - calibration.accelBias[2];
+	float mx = (float)(MagCount[0] * mResXY - calibration.magBias[0]) * calibration.magScale[0];
+	float my = (float)(MagCount[1] * mResXY - calibration.magBias[1]) * calibration.magScale[1];
+	float mz = (float)(MagCount[2] * mResZ  - calibration.magBias[2]) * calibration.magScale[2];
 
-	// Calculate the gyro value into actual degrees per second
-	gx = GyroCount[0] * gRes - calibration.gyroBias[0];
-	gy = GyroCount[1] * gRes - calibration.gyroBias[1];
-	gz = GyroCount[2] * gRes - calibration.gyroBias[2];
-
-	// Calculate the mag value into actual uT per second
-	mx = (float)(MagCount[0] * mResXY - calibration.magBias[0]) * calibration.magScale[0];
-	my = (float)(MagCount[1] * mResXY - calibration.magBias[1]) * calibration.magScale[1];
-	mz = (float)(MagCount[2] * mResZ  - calibration.magBias[2]) * calibration.magScale[2];
-
-	// Calculate the temperature value into actual deg c
-	temperature = -((rawDataAccel[6] * -0.5f) * (86.5f - -40.5f) / (float)(128.f) - 40.5f) - 20.f;
 	switch (geometryIndex) {
 	case 0:
 		accel.accelX = ax;		gyro.gyroX = gx;		mag.magX = mx;
@@ -401,4 +400,20 @@ void BMX055::calibrateMag(calData* cal)
 	cal->magScale[0] = avg_rad / ((float)mag_scale[0]);
 	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
 	cal->magScale[2] = avg_rad / ((float)mag_scale[2]);
+}
+
+// BMX055 mag MAG_OM_ODR_SELF bits[5:3] ODR encoding (ascending Hz order with matching codes)
+static const int BMX055_MAG_ODR_TABLE[] = {2, 6, 8, 10, 15, 20, 25, 30};
+static const uint8_t BMX055_MAG_ODR_CODE[] = {1, 2, 3, 0, 4, 5, 6, 7};
+
+int BMX055::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMX055_MAG_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (BMX055_MAG_ODR_TABLE[idx] != actual) idx++;
+	uint8_t reg = readByteI2C(wire, MagAddress, BMX055_MAG_OM_ODR_SELF);
+	reg = (reg & 0xC7) | (uint8_t)(BMX055_MAG_ODR_CODE[idx] << 3);
+	writeByteI2C(wire, MagAddress, BMX055_MAG_OM_ODR_SELF, reg);
+	currentMagODR = actual;
+	return actual;
 }

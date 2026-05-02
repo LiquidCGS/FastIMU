@@ -219,3 +219,19 @@ void BMM150::calibrateMag(calData* cal)
 
 	cal->valid = true;
 }
+
+// BMM150 CONFIG bits[5:3] ODR encoding (ascending Hz order with matching codes)
+static const int BMM150_ODR_TABLE[] = {2, 6, 8, 10, 15, 20, 25, 30};
+static const uint8_t BMM150_ODR_CODE[] = {1, 2, 3, 0, 4, 5, 6, 7};
+
+int BMM150::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMM150_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (BMM150_ODR_TABLE[idx] != actual) idx++;
+	uint8_t cfg = readByteI2C(wire, IMUAddress, BMM150_CONFIG);
+	cfg = (cfg & 0xC7) | (uint8_t)(BMM150_ODR_CODE[idx] << 3);
+	writeByteI2C(wire, IMUAddress, BMM150_CONFIG, cfg);
+	currentMagODR = actual;
+	return actual;
+}

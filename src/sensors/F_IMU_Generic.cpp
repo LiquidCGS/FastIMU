@@ -429,7 +429,37 @@ void IMU_Generic::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-void IMU_Generic::calibrateMag(calData* cal) 
+int IMU_Generic::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	uint8_t div = (uint8_t)constrain(1000 / odr_hz - 1, 0, 255);
+	writeByteI2C(wire, IMUAddress, IMU_Generic_SMPLRT_DIV, div);
+	currentAccelODR = 1000 / ((int)div + 1);
+	currentGyroODR  = currentAccelODR;
+	return currentAccelODR;
+}
+
+int IMU_Generic::setGyroODR(int odr_hz) {
+	return setAccelODR(odr_hz);
+}
+
+static const int IMU_Generic_MAG_ODR_TABLE[]     = {8, 100};
+static const uint8_t IMU_Generic_MAG_ODR_MODE[]  = {0x02, 0x06};
+
+int IMU_Generic::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	if (!hasMagnetometer()) return -1;
+	int actual = nearestHigherODR(IMU_Generic_MAG_ODR_TABLE, 2, odr_hz);
+	int idx = 0;
+	while (IMU_Generic_MAG_ODR_TABLE[idx] != actual) idx++;
+	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, 0x00);  // power down before mode change
+	delay(10);
+	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, (uint8_t)(1 << 4) | IMU_Generic_MAG_ODR_MODE[idx]);
+	delay(10);
+	currentMagODR = actual;
+	return actual;
+}
+
+void IMU_Generic::calibrateMag(calData* cal)
 {
 	uint16_t ii = 0, sample_count = 0;
 	int32_t mag_bias[3] = { 0, 0, 0 }, mag_scale[3] = { 0, 0, 0 };

@@ -328,3 +328,15 @@ void ICM20690::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[2] = (float)gyro_bias[2] / (float)gyrosensitivity;
 	cal->valid = true;
 }
+
+int ICM20690::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	uint8_t div = (uint8_t)constrain(1000 / odr_hz - 1, 0, 255);
+	writeByteI2C(wire, IMUAddress, ICM20690_SMPLRT_DIV, div);
+	currentODR = 1000 / ((int)div + 1);
+	return currentODR;
+}
+
+int ICM20690::setAccelODR(int odr_hz) {
+	return setGyroODR(odr_hz);
+}

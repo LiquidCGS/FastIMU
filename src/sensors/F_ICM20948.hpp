@@ -82,6 +82,7 @@
 // AK09916
 #define AK09916_ADDRESS     0x0C
 #define AK09916_WIA2        0x01
+#define AK09916_ST1         0x10
 #define AK09916_HXL         0x11
 #define AK09916_CNTL2       0x31
 #define AK09916_CNTL3       0x32
@@ -110,6 +111,14 @@ public:
 		return 0;
 	};
 
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentAccelODR; }
+	int getGyroODR() override { return currentGyroODR; }
+
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 
@@ -134,6 +143,10 @@ public:
 	}
 
 private:
+	int currentAccelODR = 1125;
+	int currentGyroODR = 1100;
+	int currentMagODR = 100;
+
 	float aRes = 16.0f / 32768.0f;
 	float gRes = 2000.0f / 32768.0f;
 	float mRes = 4912.f / 32760.0f;
@@ -144,6 +157,7 @@ private:
 	GyroData gyro = { 0 };
 	MagData mag = { 0 };
 	bool magInitialized = false;
+	int16_t prevRawAccel[3] = {0, 0, 0};
 
 	calData calibration;
 	uint8_t IMUAddress;

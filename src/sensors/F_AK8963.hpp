@@ -51,6 +51,9 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 
@@ -77,6 +80,7 @@ private:
 	float mRes = 10. * 4912. / 32760.0;		//mres value for full range (4912uT) readings
 
 	int geometryIndex = 0;
+	int currentMagODR = 100;
 	float temperature = 0.f;
 	MagData mag = { 0 };
 

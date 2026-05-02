@@ -42,13 +42,19 @@ int BMI160::init(calData cal, uint8_t address)
 }
 
 void BMI160::update() {
+	uint8_t status = readByteI2C(wire, IMUAddress, BMI160_STATUS);
+	bool accelReady = status & 0x80;
+	bool gyroReady  = status & 0x40;
+	if (!accelReady && !gyroReady) return;
+
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
 	readBytesI2C(wire, IMUAddress, BMI160_GYR_X_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
-	accel.timestamp = micros();
-	gyro.timestamp = accel.timestamp;
+	uint32_t now = micros();
+	if (accelReady) accel.timestamp = now;
+	if (gyroReady)  gyro.timestamp  = now;
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -279,4 +285,31 @@ void BMI160::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[1] = (float)gyro_bias[1];
 	cal->gyroBias[2] = (float)gyro_bias[2];
 	cal->valid = true;
+}
+
+static const int BMI160_ODR_TABLE[] = {12, 25, 50, 100, 200, 400, 800, 1600};
+static const uint8_t BMI160_ODR_REG[] = {0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C};
+
+int BMI160::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMI160_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (BMI160_ODR_TABLE[idx] != actual) idx++;
+	uint8_t conf = readByteI2C(wire, IMUAddress, BMI160_ACC_CONF);
+	conf = (conf & 0xF0) | BMI160_ODR_REG[idx];
+	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, conf);
+	currentAccelODR = actual;
+	return actual;
+}
+
+int BMI160::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(BMI160_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (BMI160_ODR_TABLE[idx] != actual) idx++;
+	uint8_t conf = readByteI2C(wire, IMUAddress, BMI160_GYR_CONF);
+	conf = (conf & 0xF0) | BMI160_ODR_REG[idx];
+	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, conf);
+	currentGyroODR = actual;
+	return actual;
 }

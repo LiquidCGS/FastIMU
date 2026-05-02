@@ -38,15 +38,19 @@ int LSM6DS3::init(calData cal, uint8_t address)
 }
 
 void LSM6DS3::update() {
-	if (!(readByteI2C(wire, IMUAddress, LSM6DS3_STATUS_REG) & 0x03)) { return; }
+	uint8_t status = readByteI2C(wire, IMUAddress, LSM6DS3_STATUS_REG);
+	bool accelReady = status & 0x01;  // XLDA
+	bool gyroReady  = status & 0x02;  // GDA
+	if (!accelReady && !gyroReady) return;
 
-	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
-	uint8_t rawData[14];                                          // x/y/z accel register data stored here
+	int16_t IMUCount[6];
+	uint8_t rawData[14];
 
-	readBytesI2C(wire, IMUAddress, LSM6DS3_OUT_TEMP_L, 14, &rawData[0]);    // Read the 12 raw data registers into data array
+	readBytesI2C(wire, IMUAddress, LSM6DS3_OUT_TEMP_L, 14, &rawData[0]);
 
-	accel.timestamp = micros();
-	gyro.timestamp = accel.timestamp;
+	uint32_t now = micros();
+	if (accelReady) accel.timestamp = now;
+	if (gyroReady)  gyro.timestamp  = now;
 
 	IMUCount[0] = ((int16_t)rawData[3] << 8) | rawData[2];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[5] << 8) | rawData[4];
@@ -176,27 +180,31 @@ int LSM6DS3::setGyroRange(int range) {
 void LSM6DS3::calibrateAccelGyro(calData* cal)
 {
 	uint8_t data[12];
-	uint16_t packet_count = 64; // How many sets of full gyro and accelerometer data for averaging;
+	uint16_t packet_count = 256;
 	float gyro_bias[3] = { 0, 0, 0 }, accel_bias[3] = { 0, 0, 0 };
 
 	float  gyrosensitivity = 250.f / 32768.f;
 	float  accelsensitivity = 2.f / 32768.f;
 
 	// reset device
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL3_C, 0x01);   // Toggle softreset
-	delay(100);										// wait for reset
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL3_C, 0x01);
+	delay(100);
 
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x70);	// Start up accelerometer, set range to +-2g, set output data rate to 104hz
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0x70);	// Start up gyroscope, set range to -+250dps, output data rate to 104hz.
-	delay(100);										// wait...
+	// 104 Hz ODR, ±2g accel, ±250dps gyro
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x40);
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G,  0x40);
+	delay(200);
 
 	for (int i = 0; i < packet_count; i++)
 	{
 		int16_t accel_temp[3] = { 0, 0, 0 }, gyro_temp[3] = { 0, 0, 0 };
 
-		readBytesI2C(wire, IMUAddress, LSM6DS3_OUTX_L_G, 12, &data[0]);    // Read the 12 raw data registers into data array
+		// Wait for fresh data on both sensors
+		while (!(readByteI2C(wire, IMUAddress, LSM6DS3_STATUS_REG) & 0x03)) {}
 
-		gyro_temp[0] = ((int16_t)data[1] << 8) | data[0];		  // Turn the MSB and LSB into a signed 16-bit value
+		readBytesI2C(wire, IMUAddress, LSM6DS3_OUTX_L_G, 12, &data[0]);
+
+		gyro_temp[0] = ((int16_t)data[1] << 8) | data[0];
 		gyro_temp[1] = ((int16_t)data[3] << 8) | data[2];
 		gyro_temp[2] = ((int16_t)data[5] << 8) | data[4];
 
@@ -204,15 +212,13 @@ void LSM6DS3::calibrateAccelGyro(calData* cal)
 		accel_temp[1] = ((int16_t)data[9] << 8) | data[8];
 		accel_temp[2] = ((int16_t)data[11] << 8) | data[10];
 
-
-		accel_bias[0] += accel_temp[0] * accelsensitivity; // Sum individual signed 16-bit biases to get accumulated biases
+		accel_bias[0] += accel_temp[0] * accelsensitivity;
 		accel_bias[1] += accel_temp[1] * accelsensitivity;
 		accel_bias[2] += accel_temp[2] * accelsensitivity;
 
 		gyro_bias[0] += gyro_temp[0] * gyrosensitivity;
 		gyro_bias[1] += gyro_temp[1] * gyrosensitivity;
 		gyro_bias[2] += gyro_temp[2] * gyrosensitivity;
-		delay(20);
 	}
 
 	accel_bias[0] /= packet_count; // Normalize sums to get average count biases
@@ -263,4 +269,31 @@ void LSM6DS3::calibrateAccelGyro(calData* cal)
 	cal->gyroBias[1] = (float)gyro_bias[1];
 	cal->gyroBias[2] = (float)gyro_bias[2];
 	cal->valid = true;
+}
+
+// ODR encoding in bits[7:4]: 0x1=13Hz, 0x2=26Hz, 0x3=52Hz, 0x4=104Hz, 0x5=208Hz, 0x6=416Hz, 0x7=833Hz, 0x8=1666Hz
+static const int LSM6DS3_ODR_TABLE[] = {13, 26, 52, 104, 208, 416, 833, 1666};
+
+int LSM6DS3::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(LSM6DS3_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (LSM6DS3_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl = readByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL);
+	ctrl = (ctrl & 0x0F) | (uint8_t)((idx + 1) << 4);
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, ctrl);
+	currentAccelODR = actual;
+	return actual;
+}
+
+int LSM6DS3::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(LSM6DS3_ODR_TABLE, 8, odr_hz);
+	int idx = 0;
+	while (LSM6DS3_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl = readByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G);
+	ctrl = (ctrl & 0x0F) | (uint8_t)((idx + 1) << 4);
+	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, ctrl);
+	currentGyroODR = actual;
+	return actual;
 }

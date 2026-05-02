@@ -48,6 +48,9 @@ public:
 	int setAccelRange(int range) override { return -1; };
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	bool hasMagnetometer() override {
 		return true;
 	}
@@ -71,6 +74,7 @@ public:
 private:
 	float mRes = 10. * 819.2f / 2048.f;				//mRes value for full range (+-819.2uT scaled * 10) readings (12 bit)
 	int geometryIndex = 0;
+	int currentMagODR = 75;
 	MagData mag = { 0 };
 
 	calData calibration;

@@ -344,7 +344,19 @@ void MPU9255::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-void MPU9255::calibrateMag(calData* cal) 
+void MPU9255::calibrateMag(calData* cal)
 {
 	mag.calibrateMag(cal);
+}
+
+int MPU9255::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	uint8_t div = (uint8_t)constrain(1000 / odr_hz - 1, 0, 255);
+	writeByteI2C(wire, IMUAddress, MPU9255_SMPLRT_DIV, div);
+	currentODR = 1000 / ((int)div + 1);
+	return currentODR;
+}
+
+int MPU9255::setAccelODR(int odr_hz) {
+	return setGyroODR(odr_hz);
 }

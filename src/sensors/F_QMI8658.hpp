@@ -77,6 +77,11 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentAccelODR; }
+	int getGyroODR() override { return currentGyroODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	virtual void calibrateMag(calData* cal) override {};
 
@@ -105,6 +110,9 @@ private:
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
 	int geometryIndex = 0;
 
+	int currentAccelODR = 500;
+	int currentGyroODR = 500;
+
 	float temperature = 0.f;
 	AccelData accel = { 0 };
 	GyroData gyro = { 0 };
@@ -113,7 +121,7 @@ private:
 	uint8_t IMUAddress;
 
 	TwoWire& wire;
-	
+
 	bool dataAvailable(){ return (readByteI2C(wire, IMUAddress, QMI8658_STATUS0) & 0x03);}
 };
 #endif /* _F_QMI8658_H_ */

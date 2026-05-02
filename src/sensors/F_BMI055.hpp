@@ -34,6 +34,7 @@
 #define BMI055_GYR_RATE_Y_MSB    0x05
 #define BMI055_GYR_RATE_Z_LSB    0x06
 #define BMI055_GYR_RATE_Z_MSB    0x07
+#define BMI055_GYR_INT_STATUS_0  0x09
 #define BMI055_GYR_RANGE         0x0F
 #define BMI055_GYR_BW            0x10
 #define BMI055_GYR_LPM1          0x11
@@ -57,6 +58,11 @@ public:
 	int setGyroRange(int range) override;
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
+
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentAccelODR; }
+	int getGyroODR() override { return currentGyroODR; }
 
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override {};
@@ -91,6 +97,9 @@ private:
 	GyroData gyro = { 0 };
 
 	calData calibration;
+
+	int currentAccelODR = 125;
+	int currentGyroODR = 400;
 
 	uint8_t AccelAddress;
 	uint8_t GyroAddress;

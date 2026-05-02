@@ -21,6 +21,12 @@ public:
 	int setGyroRange(int range);
 	int setAccelRange(int range);
 	int setIMUGeometry(int index);
+	int setAccelODR(int odr_hz);
+	int setGyroODR(int odr_hz);
+	int getAccelODR();
+	int getGyroODR();
+	int setMagODR(int odr_hz);
+	int getMagODR();
 	void calibrateAccelGyro(calData* cal);
 	void calibrateMag(calData* cal);
 	bool hasMagnetometer();
@@ -102,6 +108,36 @@ int IMU_HYBRID<IMUType, MAGType>::setAccelRange(int range) {
 template <typename IMUType, typename MAGType>
 int IMU_HYBRID<IMUType, MAGType>::setIMUGeometry(int index) {
 	return IMU->setIMUGeometry(index);
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::setAccelODR(int odr_hz) {
+	return IMU->setAccelODR(odr_hz);
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::setGyroODR(int odr_hz) {
+	return IMU->setGyroODR(odr_hz);
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::getAccelODR() {
+	return IMU->getAccelODR();
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::getGyroODR() {
+	return IMU->getGyroODR();
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::setMagODR(int odr_hz) {
+	return MAG->setMagODR(odr_hz);
+}
+
+template <typename IMUType, typename MAGType>
+int IMU_HYBRID<IMUType, MAGType>::getMagODR() {
+	return MAG->getMagODR();
 }
 
 template <typename IMUType, typename MAGType>

@@ -61,6 +61,9 @@ public:
 	int setAccelRange(int range) override { return -1; };
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	bool hasMagnetometer() override {
 		return true;
 	}
@@ -83,6 +86,7 @@ public:
 
 private:
 	int geometryIndex = 0;
+	int currentMagODR = 30;
 	MagData mag = { 0 };
 	BMM150TrimData trim = {};
 

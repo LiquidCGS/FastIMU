@@ -50,6 +50,10 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	// AK8975 is single-shot only
+	int setMagODR(int odr_hz) override { return -1; }
+	int getMagODR() override { return -1; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 

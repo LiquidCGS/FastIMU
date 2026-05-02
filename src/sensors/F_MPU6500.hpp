@@ -158,6 +158,11 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentODR; }
+	int getGyroODR() override { return currentODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	virtual void calibrateMag(calData* cal) override {};
 
@@ -184,6 +189,8 @@ private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
 	int geometryIndex = 0;
+
+	int currentODR = 333;
 
 	float temperature = 0.f;
 	AccelData accel = { 0 };

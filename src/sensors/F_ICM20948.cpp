@@ -73,11 +73,12 @@ int ICM20948::init(calData cal, uint8_t address)
 	writeAK(AK09916_CNTL2, 0x08);
 	delay(10);
 
-	// Configure SLV0 to automatically burst-read 8 bytes from AK09916 HXL each cycle
+	// Configure SLV0 to automatically burst-read 9 bytes from AK09916 ST1 each cycle
+	// (ST1 + HXL..HZH + TMPS + ST2 — reading ST2 clears AK09916's measurement buffer)
 	selectBank(3);
 	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV0_ADDR, 0x80 | AK09916_ADDRESS);
-	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV0_REG,  AK09916_HXL);
-	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV0_CTRL, 0x88);  // EN + 8 bytes
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV0_REG,  AK09916_ST1);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV0_CTRL, 0x89);  // EN + 9 bytes
 	selectBank(0);
 	delay(10);
 
@@ -87,13 +88,15 @@ int ICM20948::init(calData cal, uint8_t address)
 
 void ICM20948::update()
 {
-	// Read 20 bytes: ACCEL(6) + GYRO(6) + TEMP(2) + EXT_SLV_SENS_DATA(6 of 8 mag bytes)
-	uint8_t rawData[20] = {0};
-	readBytesI2C(wire, IMUAddress, ICM20948_ACCEL_XOUT_H, 20, &rawData[0]);
+	if (!(readByteI2C(wire, IMUAddress, ICM20948_DATA_RDY_STATUS) & 0x01)) { return; }
 
-	accel.timestamp = micros();
-	gyro.timestamp = accel.timestamp;
-	mag.timestamp = gyro.timestamp;
+	// Read 21 bytes: ACCEL(6) + GYRO(6) + TEMP(2) + EXT_SLV_SENS_DATA(7: ST1 + HXL..HZH)
+	// rawData[14] = AK09916 ST1 (bit 0 = DRDY), rawData[15..20] = HXL..HZH
+	uint8_t rawData[21] = {0};
+	readBytesI2C(wire, IMUAddress, ICM20948_ACCEL_XOUT_H, 21, &rawData[0]);
+
+	uint32_t now = micros();
+	gyro.timestamp = now;
 
 	int16_t rawAccel[3], rawGyro[3], rawTemp;
 	rawAccel[0] = ((int16_t)rawData[0]  << 8) | rawData[1];
@@ -103,6 +106,14 @@ void ICM20948::update()
 	rawGyro[1]  = ((int16_t)rawData[8]  << 8) | rawData[9];
 	rawGyro[2]  = ((int16_t)rawData[10] << 8) | rawData[11];
 	rawTemp     = ((int16_t)rawData[12] << 8) | rawData[13];
+
+	// Only advance accel timestamp when the output registers actually changed
+	if (rawAccel[0] != prevRawAccel[0] || rawAccel[1] != prevRawAccel[1] || rawAccel[2] != prevRawAccel[2]) {
+		accel.timestamp = now;
+		prevRawAccel[0] = rawAccel[0];
+		prevRawAccel[1] = rawAccel[1];
+		prevRawAccel[2] = rawAccel[2];
+	}
 
 	temperature = (float)rawTemp / 333.87f + 21.0f;
 
@@ -114,12 +125,13 @@ void ICM20948::update()
 	float gy = (float)rawGyro[1] * gRes - calibration.gyroBias[1];
 	float gz = (float)rawGyro[2] * gRes - calibration.gyroBias[2];
 
-	// Bytes 14-19: AK09916 HXL,HXH,HYL,HYH,HZL,HZH
-	if (magInitialized) {
+	// rawData[14] = ST1: bit 0 is DRDY from AK09916
+	if (magInitialized && (rawData[14] & 0x01)) {
+		mag.timestamp = now;
 		int16_t mc[3];
-		mc[0] = (int16_t)((rawData[15] << 8) | rawData[14]);
-		mc[1] = (int16_t)((rawData[17] << 8) | rawData[16]);
-		mc[2] = (int16_t)((rawData[19] << 8) | rawData[18]);
+		mc[0] = (int16_t)((rawData[16] << 8) | rawData[15]);
+		mc[1] = (int16_t)((rawData[18] << 8) | rawData[17]);
+		mc[2] = (int16_t)((rawData[20] << 8) | rawData[19]);
 
 		// Remap AK09916 axis to align with ICM20948
 		float mx = ((float)mc[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
@@ -367,4 +379,44 @@ void ICM20948::calibrateMag(calData* cal)
 	cal->magScale[2] = avg_rad / (float)mag_scale[2];
 
 	cal->valid = true;
+}
+
+int ICM20948::setGyroODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	uint8_t div = (uint8_t)constrain(1100 / odr_hz - 1, 0, 255);
+	selectBank(2);
+	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_SMPLRT_DIV, div);
+	selectBank(0);
+	currentGyroODR = 1100 / ((int)div + 1);
+	return currentGyroODR;
+}
+
+int ICM20948::setAccelODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	uint16_t div = (uint16_t)constrain(1125 / odr_hz - 1, 0, 2047);
+	selectBank(2);
+	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_1, (uint8_t)(div >> 8));
+	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_2, (uint8_t)(div & 0xFF));
+	selectBank(0);
+	currentAccelODR = 1125 / ((int)div + 1);
+	return currentAccelODR;
+}
+
+// AK09916 inside ICM20948 uses the same CNTL2 continuous mode codes as AK09918
+static const int ICM20948_MAG_ODR_TABLE[] = {10, 20, 50, 100};
+static const uint8_t ICM20948_MAG_ODR_MODE[] = {0x02, 0x04, 0x06, 0x08};
+
+int ICM20948::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	if (!magInitialized) return -1;
+	int actual = nearestHigherODR(ICM20948_MAG_ODR_TABLE, 4, odr_hz);
+	int idx = 0;
+	while (ICM20948_MAG_ODR_TABLE[idx] != actual) idx++;
+	writeAK(AK09916_CNTL2, 0x00); // power down before mode change
+	delay(10);
+	writeAK(AK09916_CNTL2, ICM20948_MAG_ODR_MODE[idx]);
+	delay(10);
+	currentMagODR = actual;
+	selectBank(0);
+	return actual;
 }

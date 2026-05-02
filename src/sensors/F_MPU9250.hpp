@@ -158,12 +158,20 @@ public:
 
 	int setGyroRange(int range) override;
 	int setAccelRange(int range) override;
-	int setIMUGeometry(int index) override 
-	{ 
+	int setIMUGeometry(int index) override
+	{
 		mag.setIMUGeometry(index);
 		geometryIndex = index;
-		return 0; 
+		return 0;
 	};
+
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentODR; }
+	int getGyroODR() override { return currentODR; }
+
+	int setMagODR(int odr_hz) override { return mag.setMagODR(odr_hz); }
+	int getMagODR() override { return mag.getMagODR(); }
 
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
@@ -190,6 +198,8 @@ public:
 private:
 	float aRes = 16.0 / 32768.0;			//ares value for full range (16g) readings
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
+
+	int currentODR = 333;
 
 	int geometryIndex = 0;
 	float temperature = 0.f;

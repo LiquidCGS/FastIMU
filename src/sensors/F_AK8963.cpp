@@ -185,3 +185,20 @@ void AK8963::calibrateMag(calData* cal)
 	cal->magScale[1] = avg_rad / ((float)mag_scale[1]);
 	cal->magScale[2] = avg_rad / ((float)mag_scale[2]);
 }
+
+// AK8963 supports 8 Hz (mode 0x02) and 100 Hz (mode 0x06) continuous modes.
+static const int AK8963_ODR_TABLE[] = {8, 100};
+static const uint8_t AK8963_ODR_MODE[] = {0x02, 0x06};
+
+int AK8963::setMagODR(int odr_hz) {
+	if (odr_hz <= 0) return -1;
+	int actual = nearestHigherODR(AK8963_ODR_TABLE, 2, odr_hz);
+	int idx = 0;
+	while (AK8963_ODR_TABLE[idx] != actual) idx++;
+	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, 0x00); // power down before mode change
+	delay(10);
+	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, (uint8_t)(1 << 4) | AK8963_ODR_MODE[idx]);
+	delay(10);
+	currentMagODR = actual;
+	return actual;
+}

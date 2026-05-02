@@ -76,6 +76,9 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setMagODR(int odr_hz) override;
+	int getMagODR() override { return currentMagODR; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override;
 
@@ -103,6 +106,7 @@ public:
 	}
 private:
 	int geometryIndex = 0;
+	int currentMagODR = 0;
 	float temperature = 0.f;
 	MagData mag = { 0 };
 
