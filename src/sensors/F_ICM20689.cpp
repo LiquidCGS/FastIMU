@@ -340,3 +340,37 @@ int ICM20689::setGyroODR(int odr_hz) {
 int ICM20689::setAccelODR(int odr_hz) {
 	return setGyroODR(odr_hz);
 }
+
+static const int ICM20689_GYRO_LPF_TABLE[] = {5, 10, 20, 42, 98, 188, 250};
+static const uint8_t ICM20689_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+static const int ICM20689_ACCEL_LPF_TABLE[] = {5, 10, 20, 41, 92, 184, 460};
+static const uint8_t ICM20689_ACCEL_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int ICM20689::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG, 0x03, 0x01);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(ICM20689_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (ICM20689_GYRO_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG, 0x03, 0x00);
+	rmwByteI2C(wire, IMUAddress, ICM20689_MPU_CONFIG, 0x07, ICM20689_GYRO_LPF_CFG[idx]);
+	currentGyroLPF = actual;
+	return actual;
+}
+
+int ICM20689::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG2, 0x0F, 0x08);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(ICM20689_ACCEL_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (ICM20689_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG2, 0x0F, ICM20689_ACCEL_LPF_CFG[idx]);
+	currentAccelLPF = actual;
+	return actual;
+}

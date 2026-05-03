@@ -106,6 +106,11 @@ public:
 	int getAccelODR() override { return currentODR; }
 	int getGyroODR() override { return currentODR; }
 
+	int setAccelLPF(int lpf_hz) override;
+	int setGyroLPF(int lpf_hz) override;
+	int getAccelLPF() override { return currentAccelLPF; }
+	int getGyroLPF() override { return currentGyroLPF; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	virtual void calibrateMag(calData* cal) override {};
 
@@ -135,6 +140,8 @@ private:
 	int geometryIndex = 0;
 
 	int currentODR = 1000;
+	int currentAccelLPF = 41;
+	int currentGyroLPF = 42;
 
 	float temperature = 0.f;
 	AccelData accel = { 0 };

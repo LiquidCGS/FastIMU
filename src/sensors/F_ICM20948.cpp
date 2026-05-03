@@ -402,6 +402,47 @@ int ICM20948::setAccelODR(int odr_hz) {
 static const int ICM20948_MAG_ODR_TABLE[] = {10, 20, 50, 100};
 static const uint8_t ICM20948_MAG_ODR_MODE[] = {0x02, 0x04, 0x06, 0x08};
 
+static const int ICM20948_GYRO_LPF_TABLE[] = {6, 12, 24, 51, 120, 152, 197};
+static const uint8_t ICM20948_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+static const int ICM20948_ACCEL_LPF_TABLE[] = {3, 6, 12, 24, 50, 111, 246};
+static const uint8_t ICM20948_ACCEL_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int ICM20948::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		selectBank(2);
+		rmwByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1, 0x39, 0x00);
+		selectBank(0);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(ICM20948_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (ICM20948_GYRO_LPF_TABLE[idx] != actual) idx++;
+	selectBank(2);
+	rmwByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1, 0x39, (ICM20948_GYRO_LPF_CFG[idx] << 3) | 0x01);
+	selectBank(0);
+	currentGyroLPF = actual;
+	return actual;
+}
+
+int ICM20948::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		selectBank(2);
+		rmwByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG, 0x39, 0x00);
+		selectBank(0);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(ICM20948_ACCEL_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (ICM20948_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	selectBank(2);
+	rmwByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG, 0x39, (ICM20948_ACCEL_LPF_CFG[idx] << 3) | 0x01);
+	selectBank(0);
+	currentAccelLPF = actual;
+	return actual;
+}
+
 int ICM20948::setMagODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	if (!magInitialized) return -1;

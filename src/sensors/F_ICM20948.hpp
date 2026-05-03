@@ -116,6 +116,11 @@ public:
 	int getAccelODR() override { return currentAccelODR; }
 	int getGyroODR() override { return currentGyroODR; }
 
+	int setAccelLPF(int lpf_hz) override;
+	int setGyroLPF(int lpf_hz) override;
+	int getAccelLPF() override { return currentAccelLPF; }
+	int getGyroLPF() override { return currentGyroLPF; }
+
 	int setMagODR(int odr_hz) override;
 	int getMagODR() override { return currentMagODR; }
 
@@ -146,6 +151,8 @@ private:
 	int currentAccelODR = 1125;
 	int currentGyroODR = 1100;
 	int currentMagODR = 100;
+	int currentAccelLPF = 111;
+	int currentGyroLPF = 152;
 
 	float aRes = 16.0f / 32768.0f;
 	float gRes = 2000.0f / 32768.0f;
