@@ -99,6 +99,14 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 
 * ```getMagODR``` Returns the current magnetometer ODR in Hz as last set by ```setMagODR```, or -1 if not supported.
 
+* ```setAccelLPF``` Takes in an integer target low-pass filter cutoff frequency in Hz and sets the accelerometer LPF to the nearest available value. Returns the actual cutoff frequency that was set, 0 if the filter was disabled, or -1 if the sensor does not support a configurable accelerometer LPF (e.g. MPU6050, BMI055/BMX055 accel). Passing 0 disables the filter or sets the widest available bandwidth on sensors where bypass is not possible.
+
+* ```setGyroLPF``` Same as ```setAccelLPF``` but for the gyroscope. On sensors where the available bandwidths are ODR-dependent (e.g. LSM6DS3/DSL, QMI8658, BMI160, BMI055/BMX055), the nearest available bandwidth at the current ODR is selected without changing the ODR.
+
+* ```getAccelLPF``` Returns the accelerometer LPF cutoff frequency in Hz as last set by ```setAccelLPF```, 0 if disabled, or -1 if not supported.
+
+* ```getGyroLPF``` Returns the gyroscope LPF cutoff frequency in Hz as last set by ```setGyroLPF```, 0 if disabled, or -1 if not supported.
+
 * ```calibrateAccelGyro``` Takes in a pointer to calibration data and runs a Accelerometer and Gyroscope calibration, storing the new accelerometer and gyroscope calibration data in it. the IMU should be kept completely still and level during this.
 
 * ```calibrateMag``` Takes in a pointer to Calibration data and runs a Accelerometer and Gyroscope calibration, storing the new accelerometer and gyroscope calibration data in it. the IMU should be moved in a figure eight pattern while calibrating, calibration takes around 15 seconds.

@@ -442,6 +442,40 @@ int IMU_Generic::setGyroODR(int odr_hz) {
 	return setAccelODR(odr_hz);
 }
 
+static const int IMU_Generic_GYRO_LPF_TABLE[] = {5, 10, 20, 42, 98, 188, 250};
+static const uint8_t IMU_Generic_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+static const int IMU_Generic_ACCEL_LPF_TABLE[] = {5, 10, 20, 41, 92, 184, 460};
+static const uint8_t IMU_Generic_ACCEL_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int IMU_Generic::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, IMU_Generic_GYRO_CONFIG, 0x03, 0x01);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(IMU_Generic_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (IMU_Generic_GYRO_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, IMU_Generic_GYRO_CONFIG, 0x03, 0x00);
+	rmwByteI2C(wire, IMUAddress, IMU_Generic_MPU_CONFIG, 0x07, IMU_Generic_GYRO_LPF_CFG[idx]);
+	currentGyroLPF = actual;
+	return actual;
+}
+
+int IMU_Generic::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, IMU_Generic_ACCEL_CONFIG2, 0x0F, 0x08);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(IMU_Generic_ACCEL_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (IMU_Generic_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, IMU_Generic_ACCEL_CONFIG2, 0x0F, IMU_Generic_ACCEL_LPF_CFG[idx]);
+	currentAccelLPF = actual;
+	return actual;
+}
+
 static const int IMU_Generic_MAG_ODR_TABLE[]     = {8, 100};
 static const uint8_t IMU_Generic_MAG_ODR_MODE[]  = {0x02, 0x06};
 

@@ -170,6 +170,11 @@ public:
 	int getAccelODR() override { return currentODR; }
 	int getGyroODR() override { return currentODR; }
 
+	int setAccelLPF(int lpf_hz) override;
+	int setGyroLPF(int lpf_hz) override;
+	int getAccelLPF() override { return currentAccelLPF; }
+	int getGyroLPF() override { return currentGyroLPF; }
+
 	int setMagODR(int odr_hz) override { return mag.setMagODR(odr_hz); }
 	int getMagODR() override { return mag.getMagODR(); }
 
@@ -200,6 +205,8 @@ private:
 	float gRes = 2000.0 / 32768.0;			//gres value for full range (2000dps) readings
 
 	int currentODR = 333;
+	int currentAccelLPF = 41;
+	int currentGyroLPF = 42;
 
 	int geometryIndex = 0;
 	float temperature = 0.f;

@@ -185,6 +185,11 @@ public:
 	int getAccelODR() override { return currentAccelODR; }
 	int getGyroODR()  override { return currentGyroODR; }
 
+	int setAccelLPF(int lpf_hz) override;
+	int setGyroLPF(int lpf_hz) override;
+	int getAccelLPF() override { return currentAccelLPF; }
+	int getGyroLPF()  override { return currentGyroLPF; }
+
 	int setMagODR(int odr_hz) override;
 	int getMagODR()  override { return currentMagODR; }
 
@@ -219,6 +224,8 @@ private:
 	int currentAccelODR = 333;  // SMPLRT_DIV=2 → 1000/3
 	int currentGyroODR  = 333;
 	int currentMagODR   = 100;
+	int currentAccelLPF = 41;
+	int currentGyroLPF  = 42;
 
 	float temperature = 0.f;
 	AccelData accel = { 0 };

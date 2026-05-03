@@ -337,3 +337,20 @@ int MPU6050::setGyroODR(int odr_hz) {
 int MPU6050::setAccelODR(int odr_hz) {
 	return setGyroODR(odr_hz);
 }
+
+static const int MPU6050_GYRO_LPF_TABLE[] = {5, 10, 20, 42, 98, 188, 256};
+static const uint8_t MPU6050_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int MPU6050::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, MPU6050_MPU_CONFIG, 0x07, 0x00);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(MPU6050_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (MPU6050_GYRO_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, MPU6050_MPU_CONFIG, 0x07, MPU6050_GYRO_LPF_CFG[idx]);
+	currentGyroLPF = actual;
+	return actual;
+}

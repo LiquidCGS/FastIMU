@@ -64,6 +64,11 @@ public:
 	virtual int getAccelODR()           { return -1; }
 	virtual int getGyroODR()            { return -1; }
 
+	virtual int setAccelLPF(int lpf_hz) { return -1; }
+	virtual int setGyroLPF(int lpf_hz)  { return -1; }
+	virtual int getAccelLPF()           { return -1; }
+	virtual int getGyroLPF()            { return -1; }
+
 	virtual int setMagODR(int odr_hz)   { return -1; }
 	virtual int getMagODR()             { return -1; }
 
@@ -94,6 +99,16 @@ public:
 		for (int i = 0; i < count; i++)
 			if (table[i] >= requested) return table[i];
 		return table[count - 1];
+	}
+
+	static int nearestVal(const int* table, int count, int requested) {
+		int best = table[0];
+		int bestDist = abs(table[0] - requested);
+		for (int i = 1; i < count; i++) {
+			int d = abs(table[i] - requested);
+			if (d < bestDist) { bestDist = d; best = table[i]; }
+		}
+		return best;
 	}
 };
 

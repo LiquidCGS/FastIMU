@@ -349,6 +349,43 @@ void MPU9250::calibrateMag(calData* cal)
 	mag.calibrateMag(cal);
 }
 
+// Gyro DLPF: CONFIG[2:0]; bypass via GYRO_CONFIG[1:0] FCHOICE_B=01
+static const int MPU9250_GYRO_LPF_TABLE[] = {5, 10, 20, 42, 98, 188, 250};
+static const uint8_t MPU9250_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+// Accel DLPF: ACCEL_CONFIG2[2:0]; bypass via bit[3] accel_fchoice_b=1
+static const int MPU9250_ACCEL_LPF_TABLE[] = {5, 10, 20, 41, 92, 184, 460};
+static const uint8_t MPU9250_ACCEL_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int MPU9250::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, MPU9250_GYRO_CONFIG, 0x03, 0x01);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(MPU9250_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (MPU9250_GYRO_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, MPU9250_GYRO_CONFIG, 0x03, 0x00);
+	rmwByteI2C(wire, IMUAddress, MPU9250_MPU_CONFIG, 0x07, MPU9250_GYRO_LPF_CFG[idx]);
+	currentGyroLPF = actual;
+	return actual;
+}
+
+int MPU9250::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, MPU9250_ACCEL_CONFIG2, 0x0F, 0x08);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(MPU9250_ACCEL_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (MPU9250_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, MPU9250_ACCEL_CONFIG2, 0x0F, MPU9250_ACCEL_LPF_CFG[idx]);
+	currentAccelLPF = actual;
+	return actual;
+}
+
 int MPU9250::setGyroODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	uint8_t div = (uint8_t)constrain(1000 / odr_hz - 1, 0, 255);

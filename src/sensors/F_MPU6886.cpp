@@ -341,3 +341,38 @@ int MPU6886::setGyroODR(int odr_hz) {
 int MPU6886::setAccelODR(int odr_hz) {
 	return setGyroODR(odr_hz);
 }
+
+static const int MPU6886_GYRO_LPF_TABLE[] = {5, 10, 20, 42, 98, 188, 250};
+static const uint8_t MPU6886_GYRO_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+static const int MPU6886_ACCEL_LPF_TABLE[] = {5, 10, 20, 41, 92, 184, 460};
+static const uint8_t MPU6886_ACCEL_LPF_CFG[] = {6, 5, 4, 3, 2, 1, 0};
+
+int MPU6886::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, MPU6886_GYRO_CONFIG, 0x03, 0x01);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(MPU6886_GYRO_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (MPU6886_GYRO_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, MPU6886_GYRO_CONFIG, 0x03, 0x00);
+	rmwByteI2C(wire, IMUAddress, MPU6886_MPU_CONFIG, 0x07, MPU6886_GYRO_LPF_CFG[idx]);
+	currentGyroLPF = actual;
+	return actual;
+}
+
+int MPU6886::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, MPU6886_ACCEL_CONFIG2, 0x0F, 0x08);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(MPU6886_ACCEL_LPF_TABLE, 7, lpf_hz);
+	int idx = 0;
+	while (MPU6886_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, MPU6886_ACCEL_CONFIG2, 0x0F, MPU6886_ACCEL_LPF_CFG[idx]);
+	currentAccelLPF = actual;
+	return actual;
+}
