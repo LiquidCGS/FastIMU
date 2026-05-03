@@ -26,16 +26,16 @@ int QMI8658::init(calData cal, uint8_t address)
 	
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL1, 0x40);		// Enable auto increment
 
-	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x04);  	// Set up full scale Accel range. +-2G, 500hz ODR
-	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x34); 	 // Set up Gyro range. +-128dps, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x34);  	// Set up full scale Accel range. +-16G, 500hz ODR
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x74); 	 // Set up Gyro range. +-2048dps, 500hz ODR
 
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0x55);  	// Enable LPF for both accel and gyro, set to 14% of odr for around 70hz
 	
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);	    // Start up accelerometer and gyro, disable sync
 	delay(100);								    	//wait until they're done starting up...
 
-	aRes = 2.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 128.f / 32768.f;	    //gres value for full range (2048dps) readings
+	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
+	gRes = 2048.f / 32768.f;	    //gres value for full range (2048dps) readings
 
 	return 0;
 }
@@ -130,7 +130,6 @@ void QMI8658::getGyro(GyroData* out)
 }
 
 int QMI8658::setAccelRange(int range) {
-	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	uint8_t c;
 	if (range == 16) {
 		aRes = 16.f / 32768.f;
@@ -151,37 +150,38 @@ int QMI8658::setAccelRange(int range) {
 	else {
 		return -1;
 	}
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x70, c);
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);
 	return 0;
 }
 
 int QMI8658::setGyroRange(int range) {
-	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	uint8_t c;
-	if (range == 2048) {
+	if (range == 2048 || range == 2000) {
 		gRes = 2048.f / 32768.f;
 		c = 0x70;  // gFS = 111 at bits[6:4]
 	}
-	else if (range == 1024) {
+	else if (range == 1024 || range == 1000) {
 		gRes = 1024.f / 32768.f;
 		c = 0x60;  // gFS = 110 at bits[6:4]
 	}
-	else if (range == 512) {
+	else if (range == 512 || range == 500) {
 		gRes = 512.f / 32768.f;
 		c = 0x50;  // gFS = 101 at bits[6:4]
 	}
-	else if (range == 256){
+	else if (range == 256 || range == 250){
 		gRes = 256.f / 32768.f;
 		c = 0x40;  // gFS = 100 at bits[6:4]
 	}
-	else if (range == 128){
+	else if (range == 128 || range == 125){
 		gRes = 128.f / 32768.f;
 		c = 0x30;  // gFS = 011 at bits[6:4]
 	}
 	else {
 		return -1;
 	}
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x70, c);
 	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x03);
 	return 0;
@@ -293,18 +293,17 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-// Ascending ODR table (same encoding for both accel and gyro).
-// Accel ODR field: CTRL2 bits[6:4]. Gyro ODR field: CTRL3 bits[7:5].
+// ODR field is bits[3:0] in both CTRL2 (accel) and CTRL3 (gyro).
+// Init value 0x04 → 500 Hz confirms ascending encoding starting at 0x01.
 static const int QMI8658_ODR_TABLE[] = {62, 125, 250, 500, 1000, 2000, 4000, 8000};
-static const uint8_t QMI8658_ACCEL_ODR_REG[] = {0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70};
-static const uint8_t QMI8658_GYRO_ODR_REG[]  = {0x00, 0x20, 0x40, 0x60, 0x80, 0xA0, 0xC0, 0xE0};
+static const uint8_t QMI8658_ODR_REG[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 
 int QMI8658::setAccelODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
-	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x70, QMI8658_ACCEL_ODR_REG[idx]);
+	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x0F, QMI8658_ODR_REG[idx]);
 	currentAccelODR = actual;
 	return actual;
 }
@@ -314,7 +313,7 @@ int QMI8658::setGyroODR(int odr_hz) {
 	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
-	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0xE0, QMI8658_GYRO_ODR_REG[idx]);
+	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x0F, QMI8658_ODR_REG[idx]);
 	currentGyroODR = actual;
 	return actual;
 }
