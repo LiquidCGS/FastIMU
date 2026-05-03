@@ -41,16 +41,19 @@ int QMI8658::init(calData cal, uint8_t address)
 }
 
 void QMI8658::update() {
-	
-	if(!dataAvailable()) {return;}
-	
+	uint8_t status = readByteI2C(wire, IMUAddress, QMI8658_STATUS0);
+	bool accelReady = status & 0x01;
+	bool gyroReady  = status & 0x02;
+	if (!accelReady && !gyroReady) return;
+
 	int16_t IMUCount[6];                                          // used to read all 16 bytes at once from the accel/gyro
 	uint8_t rawData[12];                                          // x/y/z accel register data stored here
 
 	readBytesI2C(wire, IMUAddress, QMI8658_AX_L, 12, &rawData[0]);    // Read the 12 raw data registers into data array
 
-	accel.timestamp = micros();
-	gyro.timestamp = accel.timestamp;
+	uint32_t now = micros();
+	if (accelReady) accel.timestamp = now;
+	if (gyroReady)  gyro.timestamp  = now;
 
 	IMUCount[0] = ((int16_t)rawData[1] << 8) | rawData[0];		  // Turn the MSB and LSB into a signed 16-bit value
 	IMUCount[1] = ((int16_t)rawData[3] << 8) | rawData[2];
@@ -293,17 +296,19 @@ void QMI8658::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-// ODR field is bits[3:0] in both CTRL2 (accel) and CTRL3 (gyro).
-// Init value 0x04 → 500 Hz confirms ascending encoding starting at 0x01.
+// QMI8658 ODR encoding: lower code = higher rate (0x00=8000Hz … 0x07=62Hz).
 static const int QMI8658_ODR_TABLE[] = {62, 125, 250, 500, 1000, 2000, 4000, 8000};
-static const uint8_t QMI8658_ODR_REG[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+static const uint8_t QMI8658_ODR_REG[] = {0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00};
 
 int QMI8658::setAccelODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl7 = readByteI2C(wire, IMUAddress, QMI8658_CTRL7);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL2, 0x0F, QMI8658_ODR_REG[idx]);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
 	currentAccelODR = actual;
 	return actual;
 }
@@ -313,7 +318,58 @@ int QMI8658::setGyroODR(int odr_hz) {
 	int actual = nearestHigherODR(QMI8658_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (QMI8658_ODR_TABLE[idx] != actual) idx++;
+	uint8_t ctrl7 = readByteI2C(wire, IMUAddress, QMI8658_CTRL7);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
 	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL3, 0x0F, QMI8658_ODR_REG[idx]);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
 	currentGyroODR = actual;
 	return actual;
+}
+
+int QMI8658::setAccelLPF(int lpf_hz) {
+	uint8_t ctrl7 = readByteI2C(wire, IMUAddress, QMI8658_CTRL7);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0xD0, 0x00);
+		writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	static const float factors[] = {0.025f, 0.14f, 0.33f, 0.50f};
+	int best_idx = 0;
+	int best_bw = (int)(factors[0] * currentAccelODR);
+	int best_dist = abs(best_bw - lpf_hz);
+	for (int i = 1; i < 4; i++) {
+		int bw = (int)(factors[i] * currentAccelODR);
+		int d = abs(bw - lpf_hz);
+		if (d < best_dist) { best_dist = d; best_bw = bw; best_idx = i; }
+	}
+	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0xD0, ((uint8_t)best_idx << 6) | 0x10);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
+	currentAccelLPF = best_bw;
+	return best_bw;
+}
+
+int QMI8658::setGyroLPF(int lpf_hz) {
+	uint8_t ctrl7 = readByteI2C(wire, IMUAddress, QMI8658_CTRL7);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, 0x00);
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0x0D, 0x00);
+		writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	static const float factors[] = {0.025f, 0.14f, 0.33f, 0.50f};
+	int best_idx = 0;
+	int best_bw = (int)(factors[0] * currentGyroODR);
+	int best_dist = abs(best_bw - lpf_hz);
+	for (int i = 1; i < 4; i++) {
+		int bw = (int)(factors[i] * currentGyroODR);
+		int d = abs(bw - lpf_hz);
+		if (d < best_dist) { best_dist = d; best_bw = bw; best_idx = i; }
+	}
+	rmwByteI2C(wire, IMUAddress, QMI8658_CTRL5, 0x0D, ((uint8_t)best_idx << 2) | 0x01);
+	writeByteI2C(wire, IMUAddress, QMI8658_CTRL7, ctrl7);
+	currentGyroLPF = best_bw;
+	return best_bw;
 }
