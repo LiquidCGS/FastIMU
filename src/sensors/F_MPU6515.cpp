@@ -189,7 +189,7 @@ int MPU6515::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, MPU6515_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, MPU6515_ACCEL_CONFIG, 0x18, c);
 	return 0;
 }
 
@@ -214,7 +214,7 @@ int MPU6515::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, MPU6515_GYRO_CONFIG, c); // Write new GYRO_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, MPU6515_GYRO_CONFIG, 0x18, c);
 	return 0;
 }
 

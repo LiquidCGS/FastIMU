@@ -56,13 +56,13 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 
 ### Data types
 
-* ```AccelData``` Contains all three axis of Accelerometer data, these are named ```accelX```, ```accelY``` and ```accelZ```
+* ```AccelData``` Contains all three axis of Accelerometer data, these are named ```accelX```, ```accelY``` and ```accelZ```. Also contains a ```timestamp``` field (uint32_t, microseconds from ```micros()```) updated only when the sensor has new data.
 
-* ```GyroData``` Contains all three axis of Gyroscope data, these are named ```gyroX```, ```gyroY``` and ```gyroZ```
+* ```GyroData``` Contains all three axis of Gyroscope data, these are named ```gyroX```, ```gyroY``` and ```gyroZ```. Also contains a ```timestamp``` field updated independently of ```AccelData```.
 
-* ```MagData``` Contains all three axis of Magnetometer data, these are named ```magX```, ```magY``` and ```magZ```
+* ```MagData``` Contains all three axis of Magnetometer data, these are named ```magX```, ```magY``` and ```magZ```. Also contains a ```timestamp``` field updated only when the magnetometer has new data.
 
-* ```Quaternion``` Contains Quaternion data, the components are named ```qW```, ```qX```, ```qY``` and ```qZ```
+* ```Quaternion``` Contains Quaternion data, the components are named ```qW```, ```qX```, ```qY``` and ```qZ```. Also contains a ```timestamp``` field.
 
 * ```CalData``` Contains a boolean component named ```valid``` that must be set to ```true``` if the data is valid, it contains float array named ```accelBias``` for accelerometer biases, one named ```gyroBias``` for gyroscope bias, one named ```magBias``` for magnetometer biases and one named ```magScale``` for magnetometer scaling.
 
@@ -86,6 +86,18 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 * ```setAccelRange``` Takes in an integer with the dps range wanted, (for example 8 for ±8g), returns 0 if successful, returns -1 if the input range is not valid.
 
 * ```setIMUGeometry``` Takes in an integer with the wanted geometry index, rotates IMU measurements to match vr headset IMU mount. (see chart below).
+
+* ```setAccelODR``` Takes in an integer target output data rate in Hz and sets the accelerometer ODR to the nearest supported rate greater than or equal to the requested value. Returns the actual ODR that was set, or -1 if the sensor does not support configurable ODR.
+
+* ```setGyroODR``` Same as ```setAccelODR``` but for the gyroscope. On some sensors (e.g. MPU6050-family) accel and gyro share a rate divider so setting one affects both.
+
+* ```setMagODR``` Same as ```setAccelODR``` but for the magnetometer. Returns -1 if the IMU has no magnetometer or if it does not support a configurable continuous ODR (e.g. AK8975).
+
+* ```getAccelODR``` Returns the current accelerometer ODR in Hz as last set by ```setAccelODR```, or -1 if not supported.
+
+* ```getGyroODR``` Returns the current gyroscope ODR in Hz as last set by ```setGyroODR```, or -1 if not supported.
+
+* ```getMagODR``` Returns the current magnetometer ODR in Hz as last set by ```setMagODR```, or -1 if not supported.
 
 * ```calibrateAccelGyro``` Takes in a pointer to calibration data and runs a Accelerometer and Gyroscope calibration, storing the new accelerometer and gyroscope calibration data in it. the IMU should be kept completely still and level during this.
 
@@ -111,5 +123,4 @@ creates a hybrid `MPU6050` and `QMC5883L` IMU object that behaves as a single IM
 ##### TODO: VQF? built in filters?
 ##### TODO: get DMP working for pure quaternion output from invsense IMU's
 ##### TODO: get FIFO working for all IMU's that have it.
-##### TODO: get timestamping working 
 ##### TODO: get proper matrix magnetometer calibration working instead of the current scalar garbage.

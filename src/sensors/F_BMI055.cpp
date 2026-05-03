@@ -152,24 +152,24 @@ int BMI055::setAccelRange(int range) {
 	uint8_t c;
 	if (range == 16) {
 		aRes = 16.f / 2048.f;			//ares value for full range (16g) readings
-		c = 0x0C;
+		c = 0b1100;
 	}
 	else if (range == 8) {
 		aRes = 8.f / 2048.f;			//ares value for range (8g) readings
-		c = 0x08;
+		c = 0b1000;
 	}
 	else if (range == 4) {
 		aRes = 4.f / 2048.f;			//ares value for range (4g) readings
-		c = 0x05;
+		c = 0b0101;
 	}
 	else if (range == 2) {
 		aRes = 2.f / 2048.f;			//ares value for range (2g) readings
-		c = 0x03;
+		c = 0b0011;
 	}
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_RANGE, c); // Write new BMI055_PMU_RANGE register value
+	rmwByteI2C(wire, AccelAddress, BMI055_PMU_RANGE, 0b00001111, c); // Write new BMI055_PMU_RANGE register value
 	return 0;
 }
 
@@ -177,28 +177,28 @@ int BMI055::setGyroRange(int range) {
 	uint8_t c;
 	if (range == 2000) {
 		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
-		c = 0x00;
+		c = 0b000;
 	}
 	else if (range == 1000) {
 		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
-		c = 0x01;
+		c = 0b001;
 	}
 	else if (range == 500) {
 		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
-		c = 0x02;
+		c = 0b010;
 	}
 	else if (range == 250) {
 		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
-		c = 0x03;
+		c = 0b011;
 	}
 	else if (range == 125) {
 		gRes = 125.f / 32768.f;			//ares value for range (125dps) readings
-		c = 0x04;
+		c = 0b100;
 	}
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_RANGE, c); // Write new BMX055_GYR_RANGE register value
+	rmwByteI2C(wire, AccelAddress, BMI055_GYR_RANGE, 0b00000111, c); // Write new BMX055_GYR_RANGE register value
 	return 0;
 }
 
@@ -307,7 +307,7 @@ void BMI055::calibrateAccelGyro(calData* cal)
 	cal->valid = true;
 }
 
-// Accel ODR = 2 × bandwidth. PMU_BW values 0x08-0x0F give BW 7.81-1000 Hz.
+// Accel ODR = 2 * bandwidth. PMU_BW values 0x08-0x0F give BW 7.81-1000 Hz.
 static const int BMI055_ACCEL_ODR_TABLE[] = {15, 31, 62, 125, 250, 500, 1000, 2000};
 static const uint8_t BMI055_ACCEL_BW_REG[] = {0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
 
@@ -320,7 +320,7 @@ int BMI055::setAccelODR(int odr_hz) {
 	int actual = nearestHigherODR(BMI055_ACCEL_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (BMI055_ACCEL_ODR_TABLE[idx] != actual) idx++;
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_BW, BMI055_ACCEL_BW_REG[idx]);
+	rmwByteI2C(wire, AccelAddress, BMI055_PMU_BW, 0b00011111, BMI055_ACCEL_BW_REG[idx]);
 	currentAccelODR = actual;
 	return actual;
 }
@@ -330,7 +330,7 @@ int BMI055::setGyroODR(int odr_hz) {
 	int actual = nearestHigherODR(BMI055_GYRO_ODR_TABLE, 4, odr_hz);
 	int idx = 0;
 	while (BMI055_GYRO_ODR_TABLE[idx] != actual) idx++;
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_BW, BMI055_GYRO_BW_REG[idx]);
+	rmwByteI2C(wire, GyroAddress, BMI055_GYR_BW, 0b00001111, BMI055_GYRO_BW_REG[idx]);
 	currentGyroODR = actual;
 	return actual;
 }

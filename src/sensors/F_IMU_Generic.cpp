@@ -288,7 +288,7 @@ int IMU_Generic::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, IMU_Generic_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, IMU_Generic_ACCEL_CONFIG, 0x18, c);
 	return 0;
 }
 
@@ -313,7 +313,7 @@ int IMU_Generic::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, IMU_Generic_GYRO_CONFIG, c); // Write new GYRO_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, IMU_Generic_GYRO_CONFIG, 0x18, c);
 	return 0;
 }
 

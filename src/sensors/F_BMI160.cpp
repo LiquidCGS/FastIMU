@@ -153,7 +153,7 @@ int BMI160::setAccelRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, c); // Write new ACCEL_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, 0b00001111, c); // Write new ACCEL_CONFIG register value
 	return 0;
 }
 
@@ -182,7 +182,7 @@ int BMI160::setGyroRange(int range) {
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, c); // Write new GYRO_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, 0b00001111, c); // Write new GYRO_CONFIG register value
 	return 0;
 }
 
@@ -297,7 +297,7 @@ int BMI160::setAccelODR(int odr_hz) {
 	while (BMI160_ODR_TABLE[idx] != actual) idx++;
 	uint8_t conf = readByteI2C(wire, IMUAddress, BMI160_ACC_CONF);
 	conf = (conf & 0xF0) | BMI160_ODR_REG[idx];
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, conf);
+	rmwByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0b00001111, conf);
 	currentAccelODR = actual;
 	return actual;
 }
@@ -309,7 +309,7 @@ int BMI160::setGyroODR(int odr_hz) {
 	while (BMI160_ODR_TABLE[idx] != actual) idx++;
 	uint8_t conf = readByteI2C(wire, IMUAddress, BMI160_GYR_CONF);
 	conf = (conf & 0xF0) | BMI160_ODR_REG[idx];
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, conf);
+	rmwByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0b00001111, conf);
 	currentGyroODR = actual;
 	return actual;
 }

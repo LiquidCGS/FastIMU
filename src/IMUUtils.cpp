@@ -27,3 +27,9 @@ void readBytesI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t co
         dest[i++] = wire.read();      // Put read results in the Rx buffer
     }
 }
+
+void rmwByteI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t mask, uint8_t data) {
+    uint8_t current = readByteI2C(wire, address, subAddress);
+    uint8_t modified = (current & ~mask) | (data & mask);
+    writeByteI2C(wire, address, subAddress, modified);
+}

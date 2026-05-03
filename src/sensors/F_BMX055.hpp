@@ -80,6 +80,11 @@ public:
 	int setAccelRange(int range) override;
 	int setIMUGeometry(int index) override { geometryIndex = index; return 0; };
 
+	int setAccelODR(int odr_hz) override;
+	int setGyroODR(int odr_hz) override;
+	int getAccelODR() override { return currentAccelODR; }
+	int getGyroODR() override { return currentGyroODR; }
+
 	int setMagODR(int odr_hz) override;
 	int getMagODR() override { return currentMagODR; }
 
@@ -112,6 +117,9 @@ private:
 	float mResXY = 1300.f / 4096.f;			//mres value for full range (+-1300uT) 13 bit readings
 	float mResZ = 2500.f / 16384.f;			//mres value for full range (+-2500uT) 15 bit readings
 	int geometryIndex = 0;
+
+	int currentAccelODR = 125;
+	int currentGyroODR = 400;
 	int currentMagODR = 30;
 
 	float temperature = 0.f;

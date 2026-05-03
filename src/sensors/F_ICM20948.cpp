@@ -231,10 +231,8 @@ int ICM20948::setAccelRange(int range)
 	else {
 		return -1;
 	}
-	// DLPFCFG=1
-	uint8_t c = (0x01 << 3) | (fsSel << 1) | 0x01;
 	selectBank(2);
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG, c);
+	rmwByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG, 0x06, fsSel << 1);
 	selectBank(0);
 	return 0;
 }
@@ -261,10 +259,8 @@ int ICM20948::setGyroRange(int range)
 	else {
 		return -1;
 	}
-	// DLPFCFG=1
-	uint8_t c = (0x01 << 3) | (fsSel << 1) | 0x01;
 	selectBank(2);
-	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1, c);
+	rmwByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1, 0x06, fsSel << 1);
 	selectBank(0);
 	return 0;
 }

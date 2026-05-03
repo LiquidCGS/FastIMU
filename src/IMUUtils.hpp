@@ -10,5 +10,6 @@
 void writeByteI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t data);
 uint8_t readByteI2C(TwoWire& wire, uint8_t address, uint8_t subAddress);
 void readBytesI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t count, uint8_t* dest);
+void rmwByteI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t mask, uint8_t data);
 
 #endif

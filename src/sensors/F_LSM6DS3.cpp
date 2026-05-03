@@ -130,50 +130,50 @@ void LSM6DS3::getGyro(GyroData* out)
 int LSM6DS3::setAccelRange(int range) {
 	uint8_t c;
 	if (range == 16) {
-		aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-		c = 0x67;
+		aRes = 16.f / 32768.f;
+		c = 0x04;  // FS_XL = 01 at bits[3:2]
 	}
 	else if (range == 8) {
-		aRes = 8.f / 32768.f;			//ares value for range (8g) readings
-		c = 0x6F;
+		aRes = 8.f / 32768.f;
+		c = 0x0C;  // FS_XL = 11 at bits[3:2]
 	}
 	else if (range == 4) {
-		aRes = 4.f / 32768.f;			//ares value for range (4g) readings
-		c = 0x6B;
+		aRes = 4.f / 32768.f;
+		c = 0x08;  // FS_XL = 10 at bits[3:2]
 	}
 	else if (range == 2) {
-		aRes = 2.f / 32768.f;			//ares value for range (2g) readings
-		c = 0x63;
+		aRes = 2.f / 32768.f;
+		c = 0x00;  // FS_XL = 00 at bits[3:2]
 	}
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, c); // Write new ACCEL_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x0C, c);
 	return 0;
 }
 
 int LSM6DS3::setGyroRange(int range) {
 	uint8_t c;
 	if (range == 2000) {
-		gRes = 2000.f / 32768.f;			//ares value for full range (2000dps) readings
-		c = 0x6C;
+		gRes = 2000.f / 32768.f;
+		c = 0x0C;  // FS_G = 11 at bits[3:2], FS_125 = 0
 	}
 	else if (range == 1000) {
-		gRes = 1000.f / 32768.f;			//ares value for range (1000dps) readings
-		c = 0x68;
+		gRes = 1000.f / 32768.f;
+		c = 0x08;  // FS_G = 10 at bits[3:2]
 	}
 	else if (range == 500) {
-		gRes = 500.f / 32768.f;			//ares value for range (500dps) readings
-		c = 0x64;
+		gRes = 500.f / 32768.f;
+		c = 0x04;  // FS_G = 01 at bits[3:2]
 	}
 	else if (range == 250){
-		gRes = 250.f / 32768.f;			//ares value for range (250dps) readings
-		c = 0x60;
+		gRes = 250.f / 32768.f;
+		c = 0x00;  // FS_G = 00 at bits[3:2]
 	}
 	else {
 		return -1;
 	}
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, c); // Write new GYRO_CONFIG register value
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0x0E, c);
 	return 0;
 }
 
@@ -273,15 +273,14 @@ void LSM6DS3::calibrateAccelGyro(calData* cal)
 
 // ODR encoding in bits[7:4]: 0x1=13Hz, 0x2=26Hz, 0x3=52Hz, 0x4=104Hz, 0x5=208Hz, 0x6=416Hz, 0x7=833Hz, 0x8=1666Hz
 static const int LSM6DS3_ODR_TABLE[] = {13, 26, 52, 104, 208, 416, 833, 1666};
+static const uint8_t LSM6DS3_ODR_REG[] = {0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80};
 
 int LSM6DS3::setAccelODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	int actual = nearestHigherODR(LSM6DS3_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (LSM6DS3_ODR_TABLE[idx] != actual) idx++;
-	uint8_t ctrl = readByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL);
-	ctrl = (ctrl & 0x0F) | (uint8_t)((idx + 1) << 4);
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, ctrl);
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0xF0, LSM6DS3_ODR_REG[idx]);
 	currentAccelODR = actual;
 	return actual;
 }
@@ -291,9 +290,7 @@ int LSM6DS3::setGyroODR(int odr_hz) {
 	int actual = nearestHigherODR(LSM6DS3_ODR_TABLE, 8, odr_hz);
 	int idx = 0;
 	while (LSM6DS3_ODR_TABLE[idx] != actual) idx++;
-	uint8_t ctrl = readByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G);
-	ctrl = (ctrl & 0x0F) | (uint8_t)((idx + 1) << 4);
-	writeByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, ctrl);
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL2_G, 0xF0, LSM6DS3_ODR_REG[idx]);
 	currentGyroODR = actual;
 	return actual;
 }

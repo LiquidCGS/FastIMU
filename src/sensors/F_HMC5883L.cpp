@@ -177,15 +177,14 @@ void HMC5883L::calibrateMag(calData* cal)
 // HMC5883L CFGA bits[4:2]: 0=0.75Hz, 1=1.5Hz, 2=3Hz, 3=7.5Hz, 4=15Hz, 5=30Hz, 6=75Hz
 // Integer ceiling values used for nearest-higher matching
 static const int HMC5883L_ODR_TABLE[] = {1, 2, 3, 8, 15, 30, 75};
+static const uint8_t HMC5883L_ODR_REG[] = {0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18};
 
 int HMC5883L::setMagODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	int actual = nearestHigherODR(HMC5883L_ODR_TABLE, 7, odr_hz);
 	int idx = 0;
 	while (HMC5883L_ODR_TABLE[idx] != actual) idx++;
-	uint8_t cfga = readByteI2C(wire, IMUAddress, HMC5883L_CFGA);
-	cfga = (cfga & 0xE3) | (uint8_t)(idx << 2);
-	writeByteI2C(wire, IMUAddress, HMC5883L_CFGA, cfga);
+	rmwByteI2C(wire, IMUAddress, HMC5883L_CFGA, 0x1C, HMC5883L_ODR_REG[idx]);
 	currentMagODR = actual;
 	return actual;
 }

@@ -151,15 +151,14 @@ void QMC5883L::calibrateMag(calData* cal)
 
 // QMC5883L CTRL bits[3:2]: 00=10Hz, 01=50Hz, 10=100Hz, 11=200Hz
 static const int QMC5883L_ODR_TABLE[] = {10, 50, 100, 200};
+static const uint8_t QMC5883L_ODR_REG[] = {0x00, 0x04, 0x08, 0x0C};
 
 int QMC5883L::setMagODR(int odr_hz) {
 	if (odr_hz <= 0) return -1;
 	int actual = nearestHigherODR(QMC5883L_ODR_TABLE, 4, odr_hz);
 	int idx = 0;
 	while (QMC5883L_ODR_TABLE[idx] != actual) idx++;
-	uint8_t ctrl = readByteI2C(wire, IMUAddress, QMC5883L_CTRL);
-	ctrl = (ctrl & 0xF3) | (uint8_t)(idx << 2);
-	writeByteI2C(wire, IMUAddress, QMC5883L_CTRL, ctrl);
+	rmwByteI2C(wire, IMUAddress, QMC5883L_CTRL, 0x0C, QMC5883L_ODR_REG[idx]);
 	currentMagODR = actual;
 	return actual;
 }
