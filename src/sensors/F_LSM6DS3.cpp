@@ -294,3 +294,42 @@ int LSM6DS3::setGyroODR(int odr_hz) {
 	currentGyroODR = actual;
 	return actual;
 }
+
+static const int LSM6DS3_ACCEL_LPF_TABLE[] = {50, 100, 200, 400};
+static const uint8_t LSM6DS3_ACCEL_LPF_CFG[] = {3, 2, 1, 0};
+
+int LSM6DS3::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x03, 0x00);
+		rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL4_C, 0x80, 0x80);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	int actual = nearestVal(LSM6DS3_ACCEL_LPF_TABLE, 4, lpf_hz);
+	int idx = 0;
+	while (LSM6DS3_ACCEL_LPF_TABLE[idx] != actual) idx++;
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL4_C, 0x80, 0x00);
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL1_XL, 0x03, LSM6DS3_ACCEL_LPF_CFG[idx]);
+	currentAccelLPF = actual;
+	return actual;
+}
+
+int LSM6DS3::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL6_C, 0x03, 0x01);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	static const float factors[] = {0.317f, 0.480f, 0.350f, 0.221f};
+	int best_idx = 0;
+	int best_bw = (int)(factors[0] * currentGyroODR);
+	int best_dist = abs(best_bw - lpf_hz);
+	for (int i = 1; i < 4; i++) {
+		int bw = (int)(factors[i] * currentGyroODR);
+		int d = abs(bw - lpf_hz);
+		if (d < best_dist) { best_dist = d; best_bw = bw; best_idx = i; }
+	}
+	rmwByteI2C(wire, IMUAddress, LSM6DS3_CTRL6_C, 0x03, (uint8_t)best_idx);
+	currentGyroLPF = best_bw;
+	return best_bw;
+}

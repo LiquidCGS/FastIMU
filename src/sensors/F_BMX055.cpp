@@ -429,6 +429,25 @@ int BMX055::setGyroODR(int odr_hz) {
 	currentGyroODR = actual;
 	return actual;
 }
+
+static const int BMX055_GYRO_BW_ODR[]  = {2000, 2000, 1000,  400, 200, 100, 200, 100};
+static const int BMX055_GYRO_BW_HZ[]   = { 523,  230,  116,   47,  23,  12,  64,  32};
+static const uint8_t BMX055_GYRO_BW_REG2[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+
+int BMX055::setGyroLPF(int lpf_hz) {
+	int best_bw = -1;
+	uint8_t best_reg = 0;
+	int best_score = 0x7FFFFFFF;
+	for (int i = 0; i < 8; i++) {
+		if (BMX055_GYRO_BW_ODR[i] != currentGyroODR) continue;
+		int d = (lpf_hz == 0) ? -BMX055_GYRO_BW_HZ[i] : abs(BMX055_GYRO_BW_HZ[i] - lpf_hz);
+		if (best_bw < 0 || d < best_score) { best_score = d; best_bw = BMX055_GYRO_BW_HZ[i]; best_reg = BMX055_GYRO_BW_REG2[i]; }
+	}
+	if (best_bw < 0) return -1;
+	rmwByteI2C(wire, GyroAddress, BMX055_GYR_BW, 0x0F, best_reg);
+	currentGyroLPF = (lpf_hz == 0) ? 0 : best_bw;
+	return currentGyroLPF;
+}
 // BMX055 mag MAG_OM_ODR_SELF bits[5:3] ODR encoding (ascending Hz order with matching codes)
 static const int BMX055_MAG_ODR_TABLE[] = {2, 6, 8, 10, 15, 20, 25, 30};
 static const uint8_t BMX055_MAG_ODR_REG[] = {0x08, 0x10, 0x18, 0x00, 0x20, 0x28, 0x30, 0x38};

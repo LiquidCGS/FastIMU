@@ -64,6 +64,9 @@ public:
 	int getAccelODR() override { return currentAccelODR; }
 	int getGyroODR() override { return currentGyroODR; }
 
+	int setGyroLPF(int lpf_hz) override;
+	int getGyroLPF() override { return currentGyroLPF; }
+
 	void calibrateAccelGyro(calData* cal) override;
 	void calibrateMag(calData* cal) override {};
 
@@ -100,6 +103,7 @@ private:
 
 	int currentAccelODR = 125;
 	int currentGyroODR = 400;
+	int currentGyroLPF = 47;
 
 	uint8_t AccelAddress;
 	uint8_t GyroAddress;

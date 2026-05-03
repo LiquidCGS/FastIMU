@@ -313,3 +313,43 @@ int BMI160::setGyroODR(int odr_hz) {
 	currentGyroODR = actual;
 	return actual;
 }
+
+int BMI160::setAccelLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0xF0, 0x20);
+		currentAccelLPF = 0;
+		return 0;
+	}
+	static const float factors[] = {0.10f, 0.22f, 0.50f};
+	int best_idx = 0;
+	int best_bw = (int)(factors[0] * currentAccelODR);
+	int best_dist = abs(best_bw - lpf_hz);
+	for (int i = 1; i < 3; i++) {
+		int bw = (int)(factors[i] * currentAccelODR);
+		int d = abs(bw - lpf_hz);
+		if (d < best_dist) { best_dist = d; best_bw = bw; best_idx = i; }
+	}
+	rmwByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0xF0, (uint8_t)(best_idx << 4));
+	currentAccelLPF = best_bw;
+	return best_bw;
+}
+
+int BMI160::setGyroLPF(int lpf_hz) {
+	if (lpf_hz == 0) {
+		rmwByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0xF0, 0x20);
+		currentGyroLPF = 0;
+		return 0;
+	}
+	static const float factors[] = {0.085f, 0.19f, 0.50f};
+	int best_idx = 0;
+	int best_bw = (int)(factors[0] * currentGyroODR);
+	int best_dist = abs(best_bw - lpf_hz);
+	for (int i = 1; i < 3; i++) {
+		int bw = (int)(factors[i] * currentGyroODR);
+		int d = abs(bw - lpf_hz);
+		if (d < best_dist) { best_dist = d; best_bw = bw; best_idx = i; }
+	}
+	rmwByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0xF0, (uint8_t)(best_idx << 4));
+	currentGyroLPF = best_bw;
+	return best_bw;
+}

@@ -334,3 +334,22 @@ int BMI055::setGyroODR(int odr_hz) {
 	currentGyroODR = actual;
 	return actual;
 }
+
+static const int BMI055_GYRO_BW_ODR[]  = {2000, 2000, 1000,  400, 200, 100, 200, 100};
+static const int BMI055_GYRO_BW_HZ[]   = { 523,  230,  116,   47,  23,  12,  64,  32};
+static const uint8_t BMI055_GYRO_BW_REG2[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+
+int BMI055::setGyroLPF(int lpf_hz) {
+	int best_bw = -1;
+	uint8_t best_reg = 0;
+	int best_score = 0x7FFFFFFF;
+	for (int i = 0; i < 8; i++) {
+		if (BMI055_GYRO_BW_ODR[i] != currentGyroODR) continue;
+		int d = (lpf_hz == 0) ? -BMI055_GYRO_BW_HZ[i] : abs(BMI055_GYRO_BW_HZ[i] - lpf_hz);
+		if (best_bw < 0 || d < best_score) { best_score = d; best_bw = BMI055_GYRO_BW_HZ[i]; best_reg = BMI055_GYRO_BW_REG2[i]; }
+	}
+	if (best_bw < 0) return -1;
+	rmwByteI2C(wire, GyroAddress, BMI055_GYR_BW, 0x0F, best_reg);
+	currentGyroLPF = (lpf_hz == 0) ? 0 : best_bw;
+	return currentGyroLPF;
+}
