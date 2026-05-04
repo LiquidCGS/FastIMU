@@ -125,28 +125,36 @@ void ICM20948::update()
 	float gy = (float)rawGyro[1] * gRes - calibration.gyroBias[1];
 	float gz = (float)rawGyro[2] * gRes - calibration.gyroBias[2];
 
-	// rawData[14] = ST1: bit 0 is DRDY from AK09916
-	if (magInitialized && (rawData[14] & 0x01)) {
-		mag.timestamp = now;
+	// Detect new AK09916 data by comparing raw bytes rather than ST1.DRDY.
+	// The ICM20948 I2C master runs independently at ~1.1 kHz and clears ST1.DRDY
+	// via ST2 on its first read; subsequent reads within the same accel cycle see
+	// DRDY=0, so the latched EXT_SLV_SENS_DATA rarely shows DRDY=1 even when the
+	// mag is producing data normally.  The measurement bytes are stable between
+	// AK09916 conversions, so a value change reliably marks a new sample.
+	if (magInitialized) {
 		int16_t mc[3];
 		mc[0] = (int16_t)((rawData[16] << 8) | rawData[15]);
 		mc[1] = (int16_t)((rawData[18] << 8) | rawData[17]);
 		mc[2] = (int16_t)((rawData[20] << 8) | rawData[19]);
+		if (mc[0] != prevRawMag[0] || mc[1] != prevRawMag[1] || mc[2] != prevRawMag[2]) {
+			prevRawMag[0] = mc[0]; prevRawMag[1] = mc[1]; prevRawMag[2] = mc[2];
+			mag.timestamp = now;
 
-		// Remap AK09916 axis to align with ICM20948
-		float mx = ((float)mc[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
-		float my = ((float)mc[0] * mRes - calibration.magBias[0]) * calibration.magScale[0];
-		float mz = -((float)mc[2] * mRes - calibration.magBias[2]) * calibration.magScale[2];
+			// Remap AK09916 axis to align with ICM20948
+			float mx = ((float)mc[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
+			float my = ((float)mc[0] * mRes - calibration.magBias[0]) * calibration.magScale[0];
+			float mz = -((float)mc[2] * mRes - calibration.magBias[2]) * calibration.magScale[2];
 
-		switch (geometryIndex) {
-		case 0: mag.magX = mx;  mag.magY = my;  mag.magZ = mz;  break;
-		case 1: mag.magX = -my; mag.magY = mx;  mag.magZ = mz;  break;
-		case 2: mag.magX = -mx; mag.magY = -my; mag.magZ = mz;  break;
-		case 3: mag.magX = my;  mag.magY = -mx; mag.magZ = mz;  break;
-		case 4: mag.magX = -mz; mag.magY = -my; mag.magZ = -mx; break;
-		case 5: mag.magX = -mz; mag.magY = mx;  mag.magZ = -my; break;
-		case 6: mag.magX = -mz; mag.magY = my;  mag.magZ = mx;  break;
-		case 7: mag.magX = -mz; mag.magY = -mx; mag.magZ = my;  break;
+			switch (geometryIndex) {
+			case 0: mag.magX = mx;  mag.magY = my;  mag.magZ = mz;  break;
+			case 1: mag.magX = -my; mag.magY = mx;  mag.magZ = mz;  break;
+			case 2: mag.magX = -mx; mag.magY = -my; mag.magZ = mz;  break;
+			case 3: mag.magX = my;  mag.magY = -mx; mag.magZ = mz;  break;
+			case 4: mag.magX = -mz; mag.magY = -my; mag.magZ = -mx; break;
+			case 5: mag.magX = -mz; mag.magY = mx;  mag.magZ = -my; break;
+			case 6: mag.magX = -mz; mag.magY = my;  mag.magZ = mx;  break;
+			case 7: mag.magX = -mz; mag.magY = -mx; mag.magZ = my;  break;
+			}
 		}
 	}
 

@@ -165,6 +165,7 @@ private:
 	MagData mag = { 0 };
 	bool magInitialized = false;
 	int16_t prevRawAccel[3] = {0, 0, 0};
+	int16_t prevRawMag[3] = {0, 0, 0};
 
 	calData calibration;
 	uint8_t IMUAddress;
