@@ -90,16 +90,34 @@ void setup() {
 }
 
 void loop() {
+  static uint32_t lastAccelTs = 0;
+  static uint32_t lastGyroTs  = 0;
+  static uint32_t lastMagTs   = 0;
+
   IMU.update();
   IMU.getAccel(&IMUAccel);
   IMU.getGyro(&IMUGyro);
-  if (IMU.hasMagnetometer()) {
-    IMU.getMag(&IMUMag);
-    filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
+
+  bool newAccel = (IMUAccel.timestamp != lastAccelTs);
+  bool newGyro  = (IMUGyro.timestamp  != lastGyroTs);
+
+  if (newAccel && newGyro) {
+    lastAccelTs = IMUAccel.timestamp;
+    lastGyroTs  = IMUGyro.timestamp;
+
+    if (IMU.hasMagnetometer()) {
+      IMU.getMag(&IMUMag);
+      if (IMUMag.timestamp != lastMagTs) {
+        lastMagTs = IMUMag.timestamp;
+        filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
+      } else {
+        filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+      }
+    } else {
+      filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+    }
   }
-  else {
-    filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
-  }
+
   Serial.print("QW: ");
   Serial.print(filter.getQuatW());
   Serial.print("\tQX: ");
@@ -108,5 +126,4 @@ void loop() {
   Serial.print(filter.getQuatY());
   Serial.print("\tQZ: ");
   Serial.println(filter.getQuatZ());
-  delay(50);
 }
