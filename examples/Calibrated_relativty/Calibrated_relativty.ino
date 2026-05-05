@@ -11,7 +11,7 @@
 //This example is for use with the Relativty steamvr driver. it outputs a rotation quaternion over HID that the driver can interpret as HMD rotation.
 
 #define IMU_ADDRESS 0x68    //Change to the address of the IMU
-MPU6050 IMU;                //Change to the name of any supported IMU!
+ICM20948 IMU;                //Change to the name of any supported IMU!
 
 #define IMU_GEOMETRY 0		  //Change to your current IMU geomtery (check docs for a reference pic).
 
@@ -19,7 +19,10 @@ MPU6050 IMU;                //Change to the name of any supported IMU!
 
 #define FILTER_MAX_BETA 0.15
 #define FILTER_MIN_BETA 0.015
-#define FILTER_DROPOFF  0.85      //filter values
+#define FILTER_DROPOFF  0.8      //filter values
+
+#define ODR 250
+#define LPF 100
 
 calData calib = { 0 };  //Calibration data
 AccelData IMUAccel;    //Sensor data
@@ -79,7 +82,7 @@ void setup() {
     while(!Serial){
       ;
     }
-    Serial.print("Error initializing IMU! e:");
+    Serial.print("e:");
     Serial.println(err);
     while (true) {
       ;
@@ -87,7 +90,7 @@ void setup() {
   }
 
   filter.begin(2.f);                                                      //warm up filter before use
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 1000; i++) {
     IMU.update();
     IMU.getAccel(&IMUAccel);
     IMU.getGyro(&IMUGyro);
@@ -99,87 +102,101 @@ void setup() {
       filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
     }
   }
+  IMU.setAccelODR(ODR);
+  IMU.setGyroODR(ODR);
+  IMU.setMagODR(ODR);
+  IMU.setAccelLPF(LPF);
+  IMU.setGyroLPF(LPF);
 }
 
 void loop() {
   if (Serial) {
     if (!flag) {
-      Serial.println("Serial monitor open, do you want to enter calibration mode? (y/n)");
+      Serial.println(F("Calibrate? (y/n)"));
     }
     flag = true;
     if (Serial.read() == 'y') {
       calib = { 0 };                    //this looks important
       IMU.init(calib, IMU_ADDRESS);
-      Serial.println("Calibrating IMU... Keep headset still on a flat and level surface...");
-      delay(10000);
+      Serial.println(F("Keep IMU still on a level surface."));
+      delay(6000);
       IMU.calibrateAccelGyro(&calib);
       IMU.init(calib, IMU_ADDRESS);
-      Serial.println("Accelerometer and Gyroscope calibrated!");
+      Serial.println(F("Done!"));
       if (IMU.hasMagnetometer()) {
         delay(1000);
-        Serial.println("Magnetometer calibration: move IMU in figure 8 pattern until done.");
+        Serial.println(F("MagCal: Move IMU in figure 8 until done!"));
         delay(5000);
         IMU.calibrateMag(&calib);
-        Serial.println("Magnetic calibration done!");
       }
-      Serial.println("IMU Calibration complete!");
-      Serial.println("Accel biases X/Y/Z: ");
-      Serial.print(calib.accelBias[0]);
-      Serial.print(", ");
-      Serial.print(calib.accelBias[1]);
-      Serial.print(", ");
+      Serial.println(F("Done!"));
+      Serial.println("A");
+      Serial.println(calib.accelBias[0]);
+      Serial.println(calib.accelBias[1]);
       Serial.println(calib.accelBias[2]);
-      Serial.println("Gyro biases X/Y/Z: ");
-      Serial.print(calib.gyroBias[0]);
-      Serial.print(", ");
-      Serial.print(calib.gyroBias[1]);
-      Serial.print(", ");
+      Serial.println("G");
+      Serial.println(calib.gyroBias[0]);
+      Serial.println(calib.gyroBias[1]);
       Serial.println(calib.gyroBias[2]);
       if (IMU.hasMagnetometer()) {
-        Serial.println("Mag biases X/Y/Z: ");
-        Serial.print(calib.magBias[0]);
-        Serial.print(", ");
-        Serial.print(calib.magBias[1]);
-        Serial.print(", ");
+        Serial.println("MB");
+        Serial.println(calib.magBias[0]);
+        Serial.println(calib.magBias[1]);
         Serial.println(calib.magBias[2]);
-        Serial.println("Mag Scale X/Y/Z: ");
-        Serial.print(calib.magScale[0]);
-        Serial.print(", ");
-        Serial.print(calib.magScale[1]);
-        Serial.print(", ");
+        Serial.println("MS");
+        Serial.println(calib.magScale[0]);
+        Serial.println(calib.magScale[1]);
         Serial.println(calib.magScale[2]);
       }
-      Serial.println("Saving Calibration values to EEPROM!");
+      Serial.println(F("Saved Calibration!"));
       EEPROM.put(200, calib);
       EEPROM.put(100, 99);
       delay(1000);
-	  Serial.println("Please remember to set hmdIMUdmpPackets to false in the driver settings.");
-      Serial.println("You can now close the Serial monitor.");
-      delay(5000);
+      IMU.setAccelODR(ODR);
+      IMU.setGyroODR(ODR);
+      IMU.setMagODR(ODR);
+      IMU.setAccelLPF(LPF);
+      IMU.setGyroLPF(LPF);
     }
   }
+  static uint32_t lastAccelTs = 0;
+  static uint32_t lastGyroTs  = 0;
+  static uint32_t lastMagTs   = 0;
+
   IMU.update();
   IMU.getAccel(&IMUAccel);
   IMU.getGyro(&IMUGyro);
 
-  float Av = GyroVel.gyroX * GyroVel.gyroX + GyroVel.gyroY * GyroVel.gyroY + GyroVel.gyroZ * GyroVel.gyroZ; //sqr magnitude
-  if (Av > 100.f) Av = 100.f;
-  filter.changeBeta(Av * (FILTER_MAX_BETA - FILTER_MIN_BETA) / 100 + FILTER_MIN_BETA);                      //some stuff
+  bool newAccel = (IMUAccel.timestamp != lastAccelTs);
+  bool newGyro  = (IMUGyro.timestamp  != lastGyroTs);
 
-  if (IMU.hasMagnetometer()) {
-    IMU.getMag(&IMUMag);
-    filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
-  }
-  else {
-    filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
-  }
+  if (newAccel && newGyro) {
+    lastAccelTs = IMUAccel.timestamp;
+    lastGyroTs  = IMUGyro.timestamp;
 
-  GyroVel.gyroX += IMUGyro.gyroX * filter.delta_t;
-  GyroVel.gyroY += IMUGyro.gyroY * filter.delta_t;
-  GyroVel.gyroZ += IMUGyro.gyroZ * filter.delta_t;
-  GyroVel.gyroX *= FILTER_DROPOFF;
-  GyroVel.gyroY *= FILTER_DROPOFF;
-  GyroVel.gyroZ *= FILTER_DROPOFF;                  //velocity calculations and dropoff...
+    float Av = GyroVel.gyroX * GyroVel.gyroX + GyroVel.gyroY * GyroVel.gyroY + GyroVel.gyroZ * GyroVel.gyroZ;
+    if (Av > 100.f) Av = 100.f;
+    filter.changeBeta(Av * (FILTER_MAX_BETA - FILTER_MIN_BETA) / 100 + FILTER_MIN_BETA);
+
+    if (IMU.hasMagnetometer()) {
+      IMU.getMag(&IMUMag);
+      if (IMUMag.timestamp != lastMagTs) {
+        lastMagTs = IMUMag.timestamp;
+        filter.update(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ, IMUMag.magX, IMUMag.magY, IMUMag.magZ);
+      } else {
+        filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+      }
+    } else {
+      filter.updateIMU(IMUGyro.gyroX, IMUGyro.gyroY, IMUGyro.gyroZ, IMUAccel.accelX, IMUAccel.accelY, IMUAccel.accelZ);
+    }
+
+    GyroVel.gyroX += IMUGyro.gyroX * filter.delta_t;
+    GyroVel.gyroY += IMUGyro.gyroY * filter.delta_t;
+    GyroVel.gyroZ += IMUGyro.gyroZ * filter.delta_t;
+    GyroVel.gyroX *= FILTER_DROPOFF;
+    GyroVel.gyroY *= FILTER_DROPOFF;
+    GyroVel.gyroZ *= FILTER_DROPOFF;
+  }
 
   quat[0] = filter.getQuatW();
   quat[1] = filter.getQuatY();
