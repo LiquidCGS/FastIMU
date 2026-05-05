@@ -74,48 +74,15 @@ void LSM6DS3::update() {
 	float temp = ((((int16_t)rawData[1]) << 8) | rawData[0]);
 	temperature = (temp / 8) + 25.f;
 
-	switch (geometryIndex) {
-	case 0:
-		accel.accelX = ax;		gyro.gyroX = gx;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 1:
-		accel.accelX = -ay;		gyro.gyroX = -gy;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 2:
-		accel.accelX = -ax;		gyro.gyroX = -gx;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 3:
-		accel.accelX = ay;		gyro.gyroX = gy;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 4:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = -ax;		gyro.gyroZ = -gx;
-		break;
-	case 5:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = -ay;		gyro.gyroZ = -gy;
-		break;
-	case 6:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = ax;		gyro.gyroZ = gx;
-		break;
-	case 7:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = ay;		gyro.gyroZ = gy;
-		break;
-	}
+	float aArr[3] = {ax, ay, az};
+	float gArr[3] = {gx, gy, gz};
+	const int8_t* gm = GEO_MAP[geometryIndex];
+	accel.accelX = applyGeo(gm[0], aArr);
+	accel.accelY = applyGeo(gm[1], aArr);
+	accel.accelZ = applyGeo(gm[2], aArr);
+	gyro.gyroX   = applyGeo(gm[0], gArr);
+	gyro.gyroY   = applyGeo(gm[1], gArr);
+	gyro.gyroZ   = applyGeo(gm[2], gArr);
 }
 
 void LSM6DS3::getAccel(AccelData* out)

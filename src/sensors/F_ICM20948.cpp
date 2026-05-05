@@ -30,19 +30,12 @@ int ICM20948::init(calData cal, uint8_t address)
 	writeByteI2C(wire, IMUAddress, ICM20948_PWR_MGMT_2, 0x00); // Enable accel and gyro
 	delay(200);
 
-	selectBank(2);
-	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_SMPLRT_DIV, 0x00);   // Gyro ODR = 1.1 kHz
-	// GYRO_CONFIG_1: DLPF_CFG=001 (~119 Hz BW), FS_SEL=11 (2000 dps), FCHOICE=1
-	uint8_t c = (0x01 << 3) | (0x03 << 1) | 0x01;
-	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1, c);
-
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_1, 0x00);
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_2, 0x00); // Accel ODR = 1125 Hz
-	// ACCEL_CONFIG: DLPF_CFG=001 (~119 Hz BW), FS_SEL=11 (16g), FCHOICE=1
-	c = (0x01 << 3) | (0x03 << 1) | 0x01;
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG, c);
-
-	selectBank(0);
+	setGyroODR(1100);
+	setGyroRange(2000);
+	setGyroLPF(152);
+	setAccelODR(1125);
+	setAccelRange(16);
+	setAccelLPF(111);
 	// Enable I2C master
 	writeByteI2C(wire, IMUAddress, ICM20948_USER_CTRL, 0x20);
 	selectBank(3);
@@ -86,6 +79,7 @@ int ICM20948::init(calData cal, uint8_t address)
 	return 0;
 }
 
+
 void ICM20948::update()
 {
 	if (!(readByteI2C(wire, IMUAddress, ICM20948_DATA_RDY_STATUS) & 0x01)) { return; }
@@ -125,12 +119,9 @@ void ICM20948::update()
 	float gy = (float)rawGyro[1] * gRes - calibration.gyroBias[1];
 	float gz = (float)rawGyro[2] * gRes - calibration.gyroBias[2];
 
+	const int8_t* gm = GEO_MAP[geometryIndex];
+
 	// Detect new AK09916 data by comparing raw bytes rather than ST1.DRDY.
-	// The ICM20948 I2C master runs independently at ~1.1 kHz and clears ST1.DRDY
-	// via ST2 on its first read; subsequent reads within the same accel cycle see
-	// DRDY=0, so the latched EXT_SLV_SENS_DATA rarely shows DRDY=1 even when the
-	// mag is producing data normally.  The measurement bytes are stable between
-	// AK09916 conversions, so a value change reliably marks a new sample.
 	if (magInitialized) {
 		int16_t mc[3];
 		mc[0] = (int16_t)((rawData[16] << 8) | rawData[15]);
@@ -140,66 +131,25 @@ void ICM20948::update()
 			prevRawMag[0] = mc[0]; prevRawMag[1] = mc[1]; prevRawMag[2] = mc[2];
 			mag.timestamp = now;
 
-			// Remap AK09916 axis to align with ICM20948
-			float mx = ((float)mc[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
-			float my = ((float)mc[0] * mRes - calibration.magBias[0]) * calibration.magScale[0];
-			float mz = -((float)mc[2] * mRes - calibration.magBias[2]) * calibration.magScale[2];
-
-			switch (geometryIndex) {
-			case 0: mag.magX = mx;  mag.magY = my;  mag.magZ = mz;  break;
-			case 1: mag.magX = -my; mag.magY = mx;  mag.magZ = mz;  break;
-			case 2: mag.magX = -mx; mag.magY = -my; mag.magZ = mz;  break;
-			case 3: mag.magX = my;  mag.magY = -mx; mag.magZ = mz;  break;
-			case 4: mag.magX = -mz; mag.magY = -my; mag.magZ = -mx; break;
-			case 5: mag.magX = -mz; mag.magY = mx;  mag.magZ = -my; break;
-			case 6: mag.magX = -mz; mag.magY = my;  mag.magZ = mx;  break;
-			case 7: mag.magX = -mz; mag.magY = -mx; mag.magZ = my;  break;
-			}
+			// Remap AK09916 axes to align with ICM20948, then apply geometry
+			float mArr[3];
+			mArr[0] = ((float)mc[1] * mRes - calibration.magBias[1]) * calibration.magScale[1];
+			mArr[1] = ((float)mc[0] * mRes - calibration.magBias[0]) * calibration.magScale[0];
+			mArr[2] = -((float)mc[2] * mRes - calibration.magBias[2]) * calibration.magScale[2];
+			mag.magX = applyGeo(gm[0], mArr);
+			mag.magY = applyGeo(gm[1], mArr);
+			mag.magZ = applyGeo(gm[2], mArr);
 		}
 	}
 
-	switch (geometryIndex) {
-	case 0:
-		accel.accelX = ax;		gyro.gyroX = gx;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 1:
-		accel.accelX = -ay;		gyro.gyroX = -gy;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 2:
-		accel.accelX = -ax;		gyro.gyroX = -gx;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 3:
-		accel.accelX = ay;		gyro.gyroX = gy;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 4:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = -ax;		gyro.gyroZ = -gx;
-		break;
-	case 5:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = -ay;		gyro.gyroZ = -gy;
-		break;
-	case 6:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = ax;		gyro.gyroZ = gx;
-		break;
-	case 7:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = ay;		gyro.gyroZ = gy;
-		break;
-	}
+	float aArr[3] = {ax, ay, az};
+	float gArr[3] = {gx, gy, gz};
+	accel.accelX = applyGeo(gm[0], aArr);
+	accel.accelY = applyGeo(gm[1], aArr);
+	accel.accelZ = applyGeo(gm[2], aArr);
+	gyro.gyroX   = applyGeo(gm[0], gArr);
+	gyro.gyroY   = applyGeo(gm[1], gArr);
+	gyro.gyroZ   = applyGeo(gm[2], gArr);
 }
 
 void ICM20948::getAccel(AccelData* out)
@@ -288,13 +238,12 @@ void ICM20948::calibrateAccelGyro(calData* cal)
 	delay(200);
 
 	// 250 dps and 2g for maximum sensitivity
-	selectBank(2);
-	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_SMPLRT_DIV,    0x00);
-	writeByteI2C(wire, IMUAddress, ICM20948_GYRO_CONFIG_1,      0x01); // 250 dps, DLPF on
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_1, 0x00);
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_SMPLRT_DIV_2, 0x00);
-	writeByteI2C(wire, IMUAddress, ICM20948_ACCEL_CONFIG,       0x01); // 2g, DLPF on
-	selectBank(0);
+	setGyroODR(1100);
+	setGyroRange(250);
+	setGyroLPF(197);
+	setAccelODR(1125);
+	setAccelRange(2);
+	setAccelLPF(246);
 	delay(100);
 
 	// Collect 1000 samples directly from output registers
@@ -462,6 +411,28 @@ int ICM20948::setMagODR(int odr_hz) {
 	writeAK(AK09916_CNTL2, ICM20948_MAG_ODR_MODE[idx]);
 	delay(10);
 	currentMagODR = actual;
-	selectBank(0);
 	return actual;
+}
+
+void ICM20948::writeAK(uint8_t reg, uint8_t val) {
+	selectBank(3);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_ADDR, AK09916_ADDRESS);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_DO,   val);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_REG,  reg);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL, 0x80);
+	uint32_t t = millis();
+	while ((readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL) & 0x80) && (millis() - t < 100)) {}
+	selectBank(0);
+}
+
+uint8_t ICM20948::readAK(uint8_t reg) {
+	selectBank(3);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_ADDR, 0x80 | AK09916_ADDRESS);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_REG,  reg);
+	writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL, 0x80);
+	uint32_t t = millis();
+	while ((readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL) & 0x80) && (millis() - t < 100)) {}
+	uint8_t result = readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_DI);
+	selectBank(0);
+	return result;
 }

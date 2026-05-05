@@ -52,48 +52,11 @@ void QMC5883L::update()
 	
 	readBytesI2C(wire, IMUAddress, QMC5883L_T_LSB, 2, &rawData[0]);
 	temperature = (float)((((int16_t)rawData[1] << 8) | rawData[0]) * tRes) + 20.f;
-	switch (geometryIndex) {
-	case 0:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 1:
-		mag.magX = -my;
-		mag.magY = mx;
-		mag.magZ = mz;
-		break;
-	case 2:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 3:
-		mag.magX = my;
-		mag.magY = -mx;
-		mag.magZ = mz;
-		break;
-	case 4:
-		mag.magX = -mz;
-		mag.magY = -my;
-		mag.magZ = -mx;
-		break;
-	case 5:
-		mag.magX = -mz;
-		mag.magY = mx;
-		mag.magZ = -my;
-		break;
-	case 6:
-		mag.magX = -mz;
-		mag.magY = my;
-		mag.magZ = mx;
-		break;
-	case 7:
-		mag.magX = -mz;
-		mag.magY = -mx;
-		mag.magZ = my;
-		break;
-	}
+	float mArr[3] = {mx, my, mz};
+	const int8_t* gm = GEO_MAP[geometryIndex];
+	mag.magX = applyGeo(gm[0], mArr);
+	mag.magY = applyGeo(gm[1], mArr);
+	mag.magZ = applyGeo(gm[2], mArr);
 }
 
 void QMC5883L::getMag(MagData* out)

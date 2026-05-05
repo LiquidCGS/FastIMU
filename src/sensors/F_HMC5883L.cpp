@@ -56,48 +56,11 @@ void HMC5883L::update()
 	mz = ((float)(magCount[1] * mRes - calibration.magBias[2]) * calibration.magScale[2]);  // get actual magnetometer value, this depends on scale being set
 	my = ((float)(magCount[2] * mRes - calibration.magBias[1]) * calibration.magScale[1]);  //mul by 100 to convert from G to µT
 	
-	switch (geometryIndex) {
-	case 0:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 1:
-		mag.magX = -my;
-		mag.magY = mx;
-		mag.magZ = mz;
-		break;
-	case 2:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 3:
-		mag.magX = my;
-		mag.magY = -mx;
-		mag.magZ = mz;
-		break;
-	case 4:
-		mag.magX = -mz;
-		mag.magY = -my;
-		mag.magZ = -mx;
-		break;
-	case 5:
-		mag.magX = -mz;
-		mag.magY = mx;
-		mag.magZ = -my;
-		break;
-	case 6:
-		mag.magX = -mz;
-		mag.magY = my;
-		mag.magZ = mx;
-		break;
-	case 7:
-		mag.magX = -mz;
-		mag.magY = -mx;
-		mag.magZ = my;
-		break;
-	}
+	float mArr[3] = {mx, my, mz};
+	const int8_t* gm = GEO_MAP[geometryIndex];
+	mag.magX = applyGeo(gm[0], mArr);
+	mag.magY = applyGeo(gm[1], mArr);
+	mag.magZ = applyGeo(gm[2], mArr);
 }
 
 void HMC5883L::getMag(MagData* out)

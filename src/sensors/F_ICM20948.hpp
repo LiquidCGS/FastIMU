@@ -176,30 +176,8 @@ private:
 		writeByteI2C(wire, IMUAddress, ICM20948_REG_BANK_SEL, bank << 4);
 	}
 
-	// Write one byte to an AK09916 register via the ICM20948
-	void writeAK(uint8_t reg, uint8_t val) {
-		selectBank(3);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_ADDR, AK09916_ADDRESS);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_DO,   val);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_REG,  reg);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL, 0x80);
-		uint32_t t = millis();
-		while ((readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL) & 0x80) && (millis() - t < 100)) {}
-		selectBank(0);
-	}
-
-	// Read one byte from an AK09916 register via the ICM20948
-	uint8_t readAK(uint8_t reg) {
-		selectBank(3);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_ADDR, 0x80 | AK09916_ADDRESS);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_REG,  reg);
-		writeByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL, 0x80);
-		uint32_t t = millis();
-		while ((readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_CTRL) & 0x80) && (millis() - t < 100)) {}
-		uint8_t result = readByteI2C(wire, IMUAddress, ICM20948_I2C_SLV4_DI);
-		selectBank(0);
-		return result;
-	}
+	void writeAK(uint8_t reg, uint8_t val);
+	uint8_t readAK(uint8_t reg);
 
 };
 #endif /* _F_ICM20948_H_ */

@@ -33,3 +33,18 @@ void rmwByteI2C(TwoWire& wire, uint8_t address, uint8_t subAddress, uint8_t mask
     uint8_t modified = (current & ~mask) | (data & mask);
     writeByteI2C(wire, address, subAddress, modified);
 }
+
+const int8_t GEO_MAP[8][3] = {
+    { 1,  2,  3},  // 0: x=+a0, y=+a1, z=+a2
+    {-2,  1,  3},  // 1: x=-a1, y=+a0, z=+a2
+    {-1, -2,  3},  // 2: x=-a0, y=-a1, z=+a2
+    { 2, -1,  3},  // 3: x=+a1, y=-a0, z=+a2
+    {-3, -2, -1},  // 4: x=-a2, y=-a1, z=-a0
+    {-3,  1, -2},  // 5: x=-a2, y=+a0, z=-a1
+    {-3,  2,  1},  // 6: x=-a2, y=+a1, z=+a0
+    {-3, -1,  2},  // 7: x=-a2, y=-a0, z=+a1
+};
+
+float applyGeo(int8_t m, const float* v) {
+    return m > 0 ? v[m - 1] : -v[-m - 1];
+}

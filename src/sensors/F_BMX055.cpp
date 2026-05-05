@@ -131,48 +131,19 @@ void BMX055::update()
 	float my = (float)(MagCount[1] * mResXY - calibration.magBias[1]) * calibration.magScale[1];
 	float mz = (float)(MagCount[2] * mResZ  - calibration.magBias[2]) * calibration.magScale[2];
 
-	switch (geometryIndex) {
-	case 0:
-		accel.accelX = ax;		gyro.gyroX = gx;		mag.magX = mx;
-		accel.accelY = ay;		gyro.gyroY = gy;		mag.magY = my;
-		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
-		break;
-	case 1:
-		accel.accelX = -ay;		gyro.gyroX = -gy;		mag.magX = -my;
-		accel.accelY = ax;		gyro.gyroY = gx;		mag.magY = mx;
-		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
-		break;
-	case 2:
-		accel.accelX = -ax;		gyro.gyroX = -gx;		mag.magX = mx;
-		accel.accelY = -ay;		gyro.gyroY = -gy;		mag.magY = my;
-		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
-		break;
-	case 3:
-		accel.accelX = ay;		gyro.gyroX = gy;		mag.magX = my;
-		accel.accelY = -ax;		gyro.gyroY = -gx;		mag.magY = -mx;
-		accel.accelZ = az;		gyro.gyroZ = gz;		mag.magZ = mz;
-		break;
-	case 4:
-		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
-		accel.accelY = -ay;		gyro.gyroY = -gy;		mag.magY = -my;
-		accel.accelZ = -ax;		gyro.gyroZ = -gx;		mag.magZ = -mx;
-		break;
-	case 5:
-		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
-		accel.accelY = ax;		gyro.gyroY = gx;		mag.magY = mx;
-		accel.accelZ = -ay;		gyro.gyroZ = -gy;		mag.magZ = -my;
-		break;
-	case 6:
-		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
-		accel.accelY = ay;		gyro.gyroY = gy;		mag.magY = my;
-		accel.accelZ = ax;		gyro.gyroZ = gx;		mag.magZ = mx;
-		break;
-	case 7:
-		accel.accelX = -az;		gyro.gyroX = -gz;		mag.magX = -mz;
-		accel.accelY = -ax;		gyro.gyroY = -gx;		mag.magY = -mx;
-		accel.accelZ = ay;		gyro.gyroZ = gy;		mag.magZ = my;
-		break;
-	}
+	float aArr[3] = {ax, ay, az};
+	float gArr[3] = {gx, gy, gz};
+	float mArr[3] = {mx, my, mz};
+	const int8_t* gm = GEO_MAP[geometryIndex];
+	accel.accelX = applyGeo(gm[0], aArr);
+	accel.accelY = applyGeo(gm[1], aArr);
+	accel.accelZ = applyGeo(gm[2], aArr);
+	gyro.gyroX   = applyGeo(gm[0], gArr);
+	gyro.gyroY   = applyGeo(gm[1], gArr);
+	gyro.gyroZ   = applyGeo(gm[2], gArr);
+	mag.magX     = applyGeo(gm[0], mArr);
+	mag.magY     = applyGeo(gm[1], mArr);
+	mag.magZ     = applyGeo(gm[2], mArr);
 }
 
 void BMX055::getAccel(AccelData* out) 

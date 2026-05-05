@@ -61,48 +61,11 @@ void AK8963::update() {
 	my = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
 	mz = -(float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
 
-	switch (geometryIndex) {
-	case 0:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 1:
-		mag.magX = -my;
-		mag.magY = mx;
-		mag.magZ = mz;
-		break;
-	case 2:
-		mag.magX = mx;
-		mag.magY = my;
-		mag.magZ = mz;
-		break;
-	case 3:
-		mag.magX = my;
-		mag.magY = -mx;
-		mag.magZ = mz;
-		break;
-	case 4:
-		mag.magX = -mz;
-		mag.magY = -my;
-		mag.magZ = -mx;
-		break;
-	case 5:
-		mag.magX = -mz;
-		mag.magY = mx;
-		mag.magZ = -my;
-		break;
-	case 6:
-		mag.magX = -mz;
-		mag.magY = my;
-		mag.magZ = mx;
-		break;
-	case 7:
-		mag.magX = -mz;
-		mag.magY = -mx;
-		mag.magZ = my;
-		break;
-	}
+	float mArr[3] = {mx, my, mz};
+	const int8_t* gm = GEO_MAP[geometryIndex];
+	mag.magX = applyGeo(gm[0], mArr);
+	mag.magY = applyGeo(gm[1], mArr);
+	mag.magZ = applyGeo(gm[2], mArr);
 	//    // Apply mag soft iron error compensation
 	//    mx = x * calibration.mag_softiron_matrix[0][0] + y * calibration.mag_softiron_matrix[0][1] + z * calibration.mag_softiron_matrix[0][2];
 	//    my = x * calibration.mag_softiron_matrix[1][0] + y * calibration.mag_softiron_matrix[1][1] + z * calibration.mag_softiron_matrix[1][2];

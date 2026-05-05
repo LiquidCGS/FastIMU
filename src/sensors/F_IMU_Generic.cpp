@@ -144,6 +144,7 @@ void IMU_Generic::update() {
 	gy = (float)IMUCount[5] * gRes - calibration.gyroBias[1];
 	gz = (float)IMUCount[6] * gRes - calibration.gyroBias[2];
 
+	const int8_t* gm = GEO_MAP[geometryIndex];
 	//update mag
 	if (readByteI2C(wire, AK8963_ADDRESS, AK8963_ST1) & 0x01) {				 // wait for magnetometer data ready bit to be set
 		int16_t magCount[3] = { 0, 0, 0 };                           // Stores the 16-bit signed magnetometer sensor output
@@ -163,95 +164,23 @@ void IMU_Generic::update() {
 		my = (float)(magCount[0] * mRes * factoryMagCal[0] - calibration.magBias[0]) * calibration.magScale[0];  // get actual magnetometer value, this depends on scale being set
 		mz = -(float)(magCount[2] * mRes * factoryMagCal[2] - calibration.magBias[2]) * calibration.magScale[2];
 
-		switch (geometryIndex) {
-		case 0:
-			mag.magX = mx;
-			mag.magY = my;
-			mag.magZ = mz;
-			break;
-		case 1:
-			mag.magX = -my;
-			mag.magY = mx;
-			mag.magZ = mz;
-			break;
-		case 2:
-			mag.magX = mx;
-			mag.magY = my;
-			mag.magZ = mz;
-			break;
-		case 3:
-			mag.magX = my;
-			mag.magY = -mx;
-			mag.magZ = mz;
-			break;
-		case 4:
-			mag.magX = -mz;
-			mag.magY = -my;
-			mag.magZ = -mx;
-			break;
-		case 5:
-			mag.magX = -mz;
-			mag.magY = mx;
-			mag.magZ = -my;
-			break;
-		case 6:
-			mag.magX = -mz;
-			mag.magY = my;
-			mag.magZ = mx;
-			break;
-		case 7:
-			mag.magX = -mz;
-			mag.magY = -mx;
-			mag.magZ = my;
-			break;
-		}
+		float mArr[3] = {mx, my, mz};
+		mag.magX = applyGeo(gm[0], mArr);
+		mag.magY = applyGeo(gm[1], mArr);
+		mag.magZ = applyGeo(gm[2], mArr);
 		//    // Apply mag soft iron error compensation
 		//    mx = x * calibration.mag_softiron_matrix[0][0] + y * calibration.mag_softiron_matrix[0][1] + z * calibration.mag_softiron_matrix[0][2];
 		//    my = x * calibration.mag_softiron_matrix[1][0] + y * calibration.mag_softiron_matrix[1][1] + z * calibration.mag_softiron_matrix[1][2];
 		//    mz = x * calibration.mag_softiron_matrix[2][0] + y * calibration.mag_softiron_matrix[2][1] + z * calibration.mag_softiron_matrix[2][2];
 	}
-	switch (geometryIndex) {
-	case 0:
-		accel.accelX = ax;		gyro.gyroX = gx;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 1:
-		accel.accelX = -ay;		gyro.gyroX = -gy;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 2:
-		accel.accelX = -ax;		gyro.gyroX = -gx;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 3:
-		accel.accelX = ay;		gyro.gyroX = gy;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = az;		gyro.gyroZ = gz;
-		break;
-	case 4:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ay;		gyro.gyroY = -gy;
-		accel.accelZ = -ax;		gyro.gyroZ = -gx;
-		break;
-	case 5:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ax;		gyro.gyroY = gx;
-		accel.accelZ = -ay;		gyro.gyroZ = -gy;
-		break;
-	case 6:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = ay;		gyro.gyroY = gy;
-		accel.accelZ = ax;		gyro.gyroZ = gx;
-		break;
-	case 7:
-		accel.accelX = -az;		gyro.gyroX = -gz;
-		accel.accelY = -ax;		gyro.gyroY = -gx;
-		accel.accelZ = ay;		gyro.gyroZ = gy;
-		break;
-	}
+	float aArr[3] = {ax, ay, az};
+	float gArr[3] = {gx, gy, gz};
+	accel.accelX = applyGeo(gm[0], aArr);
+	accel.accelY = applyGeo(gm[1], aArr);
+	accel.accelZ = applyGeo(gm[2], aArr);
+	gyro.gyroX   = applyGeo(gm[0], gArr);
+	gyro.gyroY   = applyGeo(gm[1], gArr);
+	gyro.gyroZ   = applyGeo(gm[2], gArr);
 }
 
 void IMU_Generic::getAccel(AccelData* out) 
