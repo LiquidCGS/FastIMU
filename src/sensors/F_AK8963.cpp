@@ -32,13 +32,10 @@ int AK8963::init(calData cal, uint8_t address)
 	factoryMagCal[0] = (float)(rawData[0] - 128) / 256. + 1.; // Return x-axis sensitivity adjustment values, etc.
 	factoryMagCal[1] = (float)(rawData[1] - 128) / 256. + 1.;
 	factoryMagCal[2] = (float)(rawData[2] - 128) / 256. + 1.;
-	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer
-	delay(10);
 	// Configure the magnetometer for continuous read and highest resolution
 	// set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
 	// and enable continuous mode data acquisition Mmode (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
-	writeByteI2C(wire, AK8963_ADDRESS, AK8963_CNTL, (uint8_t)1 << 4 | 0x06); // Set magnetometer data resolution and sample ODR
-	delay(10);
+	setMagODR(100);
 	return 0;
 }
 

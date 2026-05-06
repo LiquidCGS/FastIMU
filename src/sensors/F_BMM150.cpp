@@ -30,7 +30,7 @@ int BMM150::init(calData cal, uint8_t address)
 	loadTrim();
 
 	// Normal mode, 30 Hz ODR
-	writeByteI2C(wire, IMUAddress, BMM150_CONFIG, 0x38);
+	setMagODR(30);
 
 	// Regular preset repetitions
 	writeByteI2C(wire, IMUAddress, BMM150_REPXY, 0x04);

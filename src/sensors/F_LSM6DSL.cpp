@@ -26,13 +26,11 @@ int LSM6DSL::init(calData cal, uint8_t address)
 	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL3_C, 0x01);   // Toggle softreset
 	while (!checkReady(IMUAddress, 100));			// wait for reset
 	
-	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL1_XL, 0x47);	// Start up accelerometer, set range to +-16g, set output data rate to 104hz, BW_XL bits to 11.
-	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL2_G, 0x4C);	// Start up gyroscope, set range to -+2000dps, output data rate to 104hz.
-	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL4_C, 0x80);	// Set XL_BW_SCAL_ODR;
-	//writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL8_XL, 0x80);
-
-	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
+	setAccelODR(104);
+	setAccelRange(16);
+	setGyroODR(104);
+	setGyroRange(2000);
+	setAccelLPF(0);
 	return 0;
 }
 
@@ -157,8 +155,10 @@ void LSM6DSL::calibrateAccelGyro(calData* cal)
 	delay(100);
 
 	// 104 Hz ODR, ±2g accel, ±250dps gyro
-	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL1_XL, 0x40);
-	writeByteI2C(wire, IMUAddress, LSM6DSL_CTRL2_G,  0x40);
+	setAccelODR(104);
+	setAccelRange(2);
+	setGyroODR(104);
+	setGyroRange(250);
 	delay(200);
 
 	for (int i = 0; i < packet_count; i++)

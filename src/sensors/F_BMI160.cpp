@@ -30,14 +30,12 @@ int BMI160::init(calData cal, uint8_t address)
 	delay(100);								    	//wait until they're done starting up...
 
 
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, 0x0C);  // Set up full scale Accel range. +-16G
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, 0x00);  // Set up full scale Gyro range. +-2000dps
-
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0x0A);  // Set Accel ODR to 400hz, BWP mode to Oversample 4, LPF of ~40.5hz
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0x0A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 4, LPF of ~34.15hz
-
-	aRes = 16.f / 32768.f;			//ares value for full range (16g) readings
-	gRes = 2000.f / 32768.f;	    //gres value for full range (2000dps) readings
+	setAccelRange(16);
+	setGyroRange(2000);
+	setAccelODR(400);
+	setAccelLPF(40);
+	setGyroODR(400);
+	setGyroLPF(34);
 	return 0;
 }
 
@@ -172,11 +170,12 @@ void BMI160::calibrateAccelGyro(calData* cal)
 	delay(200);								  //wait until they're done starting up...
 	
 
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_RANGE, 0x03);  // Set up Accel range. +-2G
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_RANGE, 0x04);  // Set up Gyro range. +-125dps
-
-	writeByteI2C(wire, IMUAddress, BMI160_ACC_CONF, 0x2A);  // Set Accel ODR to 400hz, BWP mode to Oversample 1, LPF of ~162hz
-	writeByteI2C(wire, IMUAddress, BMI160_GYR_CONF, 0x2A);  // Set Gyro ODR to 400hz, BWP mode to Oversample 1, LPF of ~136hz
+	setAccelRange(2);
+	setGyroRange(125);
+	setAccelODR(400);
+	setAccelLPF(200);
+	setGyroODR(400);
+	setGyroLPF(200);
 
 	for (int i = 0; i < packet_count; i++)
 	{

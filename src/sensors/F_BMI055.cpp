@@ -36,20 +36,17 @@ int BMI055::init(calData cal, uint8_t address)
 	writeByteI2C(wire, GyroAddress, BMI055_GYR_BGW_SOFTRESET, 0xB6);
 	delay(100);
 
-	// Set accelerometer range
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_RANGE, 0x0C); // Write '1100' into bits 3:0, setting accelerometer into 16g range.
-
-	// Set LPF
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_BW, 0x0B); // Write '01011' into bits 4:0, setting the accelerometer lpf bandwidth to 62.5hz
+	// Set accelerometer range and ODR
+	setAccelRange(16);
+	setAccelODR(125);
 
 	// Enter normal mode
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_LPW, 0x00); 
+	writeByteI2C(wire, AccelAddress, BMI055_PMU_LPW, 0x00);
 
-	// Set Gyro range
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_RANGE, 0x00);	// Write '000' into bits 2:0, setting gyro into 2000dps range.
-
-	// Set LPF
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
+	// Set Gyro range and ODR
+	setGyroRange(2000);
+	setGyroODR(400);
+	setGyroLPF(47);
 
 	// Enter normal mode
 	writeByteI2C(wire, GyroAddress, BMI055_GYR_LPM1, 0x00);
@@ -182,17 +179,15 @@ void BMI055::calibrateAccelGyro(calData* cal)
 	writeByteI2C(wire, AccelAddress, BMI055_BGW_SOFTRESET, 0xB6);
 	writeByteI2C(wire, GyroAddress, BMI055_GYR_BGW_SOFTRESET, 0xB6);
 	delay(100);
-	// Set accelerometer range
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_RANGE, 0x03); // Write '0011' into bits 3:0, setting accelerometer into 2g range, maximum sensitivity
-	// Set LPF
-	writeByteI2C(wire, AccelAddress, BMI055_PMU_BW, 0x0C); // Write '01100' into bits 4:0, setting the accelerometer lpf bandwidth to 125hz
+	// Set accelerometer range and ODR
+	setAccelRange(2);
+	setAccelODR(250);
 	// Enter normal mode
 	writeByteI2C(wire, AccelAddress, BMI055_PMU_LPW, 0x00);
-	// Reset sensor.
-	// Set Gyro range
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_RANGE, 0x04);	// Write '100' into bits 2:0, setting gyro into 125dps range, maximum sensitivity
-	// Set LPF
-	writeByteI2C(wire, GyroAddress, BMI055_GYR_BW, 0x03); // Write '0011' into bits 3:0, setting the gyro lpf bandwidth to 47hz ;;;;;;;;;;;; THIS LIMITS ODR TO 400HZ
+	// Set Gyro range and ODR
+	setGyroRange(125);
+	setGyroODR(400);
+	setGyroLPF(47);
 	// Enter normal mode
 	writeByteI2C(wire, GyroAddress, BMI055_GYR_LPM1, 0x00);
 	delay(10);

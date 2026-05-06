@@ -31,45 +31,11 @@ int ICM20689::init(calData cal, uint8_t address)
 	writeByteI2C(wire, IMUAddress, ICM20689_PWR_MGMT_1, 0x01);  // Auto select clock source to be PLL gyroscope reference if ready else
 	delay(200);
 
-	// Configure Gyro and Thermometer
-	// Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively;
-	// minimum delay time for this setting is 5.9 ms, which means sensor fusion update rates cannot
-	// be higher than 1 / 0.0059 = 170 Hz
-	// DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both 
-	// With the ICM20689, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
-	writeByteI2C(wire, IMUAddress, ICM20689_MPU_CONFIG, 0x03);
-
-	// Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
-	writeByteI2C(wire, IMUAddress, ICM20689_SMPLRT_DIV, 0x00);  // Use a 1000 Hz rate; a rate consistent with the filter update rate
-	// determined inset in CONFIG above
-
-	// Set gyroscope full scale range
-	// Range selects FS_SEL and GFS_SEL are 0 - 3, so 2-bit values are left-shifted into positions 4:3
-	uint8_t c = readByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG); // get current GYRO_CONFIG register value
-	// c = c & ~0xE0; // Clear self-test bits [7:5]
-	c = c & ~0x03; // Clear Fchoice bits [1:0]
-	c = c & ~0x18; // Clear GFS bits [4:3]
-	c = c | (uint8_t)3 << 3; // Set full scale range for the gyro (11 on 4:3)
-	// c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
-	writeByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG, c); // Write new GYRO_CONFIG value to register
-
-	// Set accelerometer full-scale range configuration
-	c = readByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG); // get current ACCEL_CONFIG register value
-	// c = c & ~0xE0; // Clear self-test bits [7:5]
-	c = c & ~0x18;  // Clear AFS bits [4:3]
-	c = c | (uint8_t)3 << 3; // Set full scale range for the accelerometer (11 on 4:3)
-	writeByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
-
-	// Set accelerometer sample rate configuration
-	// It is possible to get a 4 kHz sample rate from the accelerometer by choosing 1 for
-	// accel_fchoice_b bit [3]; in this case the bandwidth is 1.13 kHz
-	c = readByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
-	c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])
-	c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
-	writeByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
-
-	// The accelerometer, gyro, and thermometer are set to 1 kHz sample rates,
-	// but all these rates are further reduced by a factor of 5 to 200 Hz because of the SMPLRT_DIV setting
+	setGyroODR(1000);
+	setGyroRange(2000);
+	setAccelRange(16);
+	setGyroLPF(42);
+	setAccelLPF(41);
 
 	// Configure Interrupts and Bypass Enable
 	// Set interrupt pin active high, push-pull, hold interrupt pin level HIGH until interrupt cleared,
@@ -209,11 +175,11 @@ void ICM20689::calibrateAccelGyro(calData* cal)
 	writeByteI2C(wire, IMUAddress, ICM20689_USER_CTRL, 0x0C);    // Reset FIFO and DMP
 	delay(15);
 
-	// Configure MPU6050 gyro and accelerometer for bias calculation
-	writeByteI2C(wire, IMUAddress, ICM20689_MPU_CONFIG, 0x01);      // Set low-pass filter to 188 Hz
-	writeByteI2C(wire, IMUAddress, ICM20689_SMPLRT_DIV, 0x00);  // Set sample rate to 1 kHz
-	writeByteI2C(wire, IMUAddress, ICM20689_GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
-	writeByteI2C(wire, IMUAddress, ICM20689_ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
+	// Configure ICM20689 gyro and accelerometer for bias calculation
+	setGyroODR(1000);
+	setGyroRange(250);
+	setAccelRange(2);
+	setGyroLPF(188);
 
 	uint16_t  gyrosensitivity = 131;   // = 131 LSB/degrees/sec
 	uint16_t  accelsensitivity = 16384;  // = 16384 LSB/g
